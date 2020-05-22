@@ -1,1 +1,12 @@
 #!/usr/bin/env bash
+
+# Retrieve hardware information.
+readonly ARCH=$(  lscpu | grep "^Architecture" | sed -E 's/^.*: *(.*)/\1/g')
+readonly CPUS=$(  lscpu | grep "^CPU(s)"       | sed -E 's/^.*: *(.*)/\1/g')
+readonly MODEL=$( lscpu | grep "^Model name"   | sed -E 's/^.*: *(.*)/\1/g')
+readonly MEMORY=$(lsmem | grep "^Total online" | sed -E 's/^.*: *(.*)/\1/g')
+
+echo -e "Architecture: $ARCH"
+echo -e "CPU(s):       $CPUS"
+echo -e "CPU model:    $MODEL"
+echo -e "Memory size:  $MEMORY"
