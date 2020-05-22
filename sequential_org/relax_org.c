@@ -2,10 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
-
-#define N 10000000   // length of the vectors
-#define EPS 0.1      // convergence criterium
-#define HEAT 100.0   // heat value on the boundary
+#include <stdio.h> 
 
 //
 // allocate a vector of length "n"
@@ -18,16 +15,16 @@ double *allocVector( int n)
 }
 
 //
-// initialise the values of the given vector "out" of length "n"
+// initialise the values of the given vector "out" of len gth "n"
 //
-void init( double *out, int n)
+void init( double *out, int n, int h)
 {
    int i;
 
    for( i=1; i<n; i++) {
       out[i] = 0;
    }
-   out[0] = HEAT;
+   out[0] = h;
 
 }
 
@@ -73,32 +70,41 @@ bool isStable( double *old, double *new, int n, double eps)
    return res;
 }
 
-int main()
+// Commandline arguments:
+// <N> <EPS> <HEAT>
+int main(int argc, char *argv[])
 {
+   double N = 10000000.0;   // length of the vectors
+   double EPS = 0.1;      // convergence criterium
+   double HEAT = 100.0;   // heat value on the boundary
+
+   if (argc == 4) {
+      sscanf(argv[1],"%lf",&N);
+      sscanf(argv[2],"%lf",&EPS);
+      sscanf(argv[3],"%lf",&HEAT);
+   }
+
    double *a,*b, *tmp;
-   int n;
    int iterations = 0;
 
    a = allocVector( N);
    b = allocVector( N);
 
-   init(a, N);
-   init(b, N);
+   init(a, N, HEAT);
+   init(b, N, HEAT);
 
-   n = N;
-
-   printf("size   : %d M (%d MB)\n", n/1000000, (int)(n*sizeof(double) / (1024*1024)));
-   printf("heat   : %f\n", HEAT);
+   printf("size   : %d M (%d MB)\n", N/1000000, (int)(N*sizeof(double) / (1024*1024)));
    printf("epsilon: %f\n", EPS);
+   printf("heat   : %f\n", HEAT);
 
    do {
       tmp = a;
       a = b;
       b = tmp;
-      relax(a, b, n);
+      relax(a, b, N);
       // print(b, n);
       iterations ++;
-   } while(!isStable(a, b, n, EPS));
+   } while(!isStable(a, b, N, EPS));
 
    printf("Number of iterations: %d\n", iterations);
 
