@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
-#include <stdio.h> 
+#include <stdio.h>
 
 //
 // allocate a vector of length "n"
