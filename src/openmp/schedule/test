@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # AUTHOR: Bram Pulles
 
-# Usage: ./test EPS HEAT
+# Usage: ./test TIMEOUT EPS HEAT
 
-readonly EPS=${1:-"0.1"}
-readonly HEAT=${2:-"100.0"}
-printf 'EPS  = %s\nHEAT = %s\n' "$EPS" "$HEAT"
+readonly TIMEOUT=${1:-'10'}
+readonly EPS=${2:-'0.1'}
+readonly HEAT=${3:-'100.0'}
+printf 'TIMEOUT = %s\nEPSILON = %s\nHEAT    = %s\n\n' "$TIMEOUT" "$EPS" "$HEAT"
 
 make clean > /dev/null
 make > /dev/null
@@ -25,7 +26,8 @@ do
 	printf '%-10s' "$N"
 	for prog in $PROGS
 	do
-		result=$(./$prog "$N" "$EPS" "$HEAT")
+		result=$(timeout "$TIMEOUT" ./$prog "$N" "$EPS" "$HEAT")
+		result=${result:-'TIMEOUT'}
 		printf '%-10s' "$result"
 	done
 	echo
