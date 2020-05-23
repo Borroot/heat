@@ -12,6 +12,7 @@
 \section{Sequential}
 
 \section{openMP}
+Use no reduction, because then the other threads will still calculate \texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed.
 
 \section{MPI}
 
