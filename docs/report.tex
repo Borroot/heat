@@ -10,7 +10,11 @@
 
 \pagebreak
 \section{Sequential}
-
+Improvements:
+\begin{itemize}
+    \item Combined relaxation and stability check into one loop
+    \item Check for malloc failure
+\end{itemize}
 \section{openMP}
 Use no reduction, because then the other threads will still calculate \texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed.
 
