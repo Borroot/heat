@@ -15,7 +15,7 @@ double *allocVector(int n)
 
 void init(double *out, int n, int heat)
 {
-	#pragma omp parallel for
+	#pragma omp parallel for schedule(auto)
 	for (int i = 0; i < n; i++) {
 		out[i] = 0;
 	}
@@ -24,7 +24,7 @@ void init(double *out, int n, int heat)
 
 int relaxAndStable(double *in, double *out, int n, double eps) {
 	int stable = 1;
-	#pragma omp parallel for schedule(static)
+	#pragma omp parallel for schedule(auto)
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
 		stable = stable && (fabs(out[i] - in[i]) <= eps);

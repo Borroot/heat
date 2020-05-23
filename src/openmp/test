@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+readonly EPS=${1:-"0.1"}
+readonly HEAT=${2:-"100.0"}
+printf 'EPS  = %s\nHEAT = %s\n' "$EPS" "$HEAT"
+
+make clean > /dev/null
+make > /dev/null
+
+PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
+NAMES=$(echo "$PROGS" | sed -E 's/relax_//g')
+
+printf '%-10s' 'N'
+for name in $NAMES
+do
+	printf '%-10s' "$name"
+done
+echo
+
+for (( N = 1000; N < 1000000000; N = N * 10 ))
+do
+	printf '%-10s' "$N"
+	for prog in $PROGS
+	do
+		result=$(./$prog "$N" "$EPS" "$HEAT")
+		printf '%-10s' "$result"
+	done
+	echo
+done
