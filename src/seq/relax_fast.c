@@ -15,7 +15,7 @@ double *allocVector(int n)
 
 void init(double *out, int n, int heat)
 {
-	for (int i = 0; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		out[i] = 0;
 	}
 	out[0] = heat;
