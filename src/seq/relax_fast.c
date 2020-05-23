@@ -41,30 +41,6 @@ void print( double *out, int n)
 	printf( ">\n");
 }
 
-//
-// individual step of the 3-point stencil
-// computes values in vector "out" from those in vector "in"
-// assuming both are of length "n"
-//
-void relax( double *in, double *out, int n)
-{
-	for(int i=1; i<n-1; i++) {
-		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-	}
-}
-
-//
-// checks the convergence criterion:
-// true, iff for all indices i, we have |out[i] - in[i]| <= eps
-//
-bool isStable( double *old, double *new, int n, double eps)
-{
-	for(int i=1; i<n-1; i++) {
-		if(!(fabs(old[i] - new[i]) <= eps)) return false;
-	}
-	return true;
-}
-
 bool relaxAndStable(double *in, double *out, int n, double eps) {
 	bool notstable = true;
 	for(int i = 1; i < n-1; i++) {
@@ -80,18 +56,17 @@ bool relaxAndStable(double *in, double *out, int n, double eps) {
 // <N> <EPS> <HEAT>
 int main(int argc, char *argv[])
 {
-    double N = 100000.0;  // length of the vectors
-    double EPS = 0.1;       // convergence criterium
-    double HEAT = 100.0;    // heat value on the boundary
+	double N = 100000.0;    // length of the vectors
+	double EPS = 0.1;       // convergence criterium
+	double HEAT = 100.0;    // heat value on the boundary
 
-    if (argc == 4) {
-        sscanf(argv[1], "%lf", &N);
-        sscanf(argv[2], "%lf", &EPS);
-        sscanf(argv[3], "%lf", &HEAT);
-    }
+	if (argc == 4) {
+		sscanf(argv[1], "%lf", &N);
+		sscanf(argv[2], "%lf", &EPS);
+		sscanf(argv[3], "%lf", &HEAT);
+	}
 
 	double *a,*b, *tmp;
-	int n;
 	int iterations = 0;
 
 	a = allocVector(N);
@@ -100,30 +75,17 @@ int main(int argc, char *argv[])
 	init(a, N, HEAT);
 	init(b, N, HEAT);
 
-	n = N;
-
-	printf("size   : %d M (%d MB)\n", n/1000000, (int)(n*sizeof(double) / (1024*1024)));
+	printf("size   : %f M (%d MB)\n", N/1000000, (int)(N*sizeof(double) / (1024*1024)));
 	printf("heat   : %f\n", HEAT);
 	printf("epsilon: %f\n", EPS);
 
-	#if RELAX_AND_STABLE == 1
-		do {
-			tmp = a;
-			a = b;
-			b = tmp;
-			iterations++;
-		} while(!relaxAndStable(a, b, n, EPS));
-	#else
-		do {
-			tmp = a;
-			a = b;
-			b = tmp;
-			relax(a, b, n);
-			iterations ++;
-		} while(!isStable(a, b, n, EPS));
-	#endif
+	do {
+		tmp = a;
+		a = b;
+		b = tmp;
+		iterations++;
+	} while(!relaxAndStable(a, b, N, EPS));
 
-	//print(b, n);
 	printf("Number of iterations: %d\n", iterations);
 
 	return 0;
