@@ -27,7 +27,7 @@ do
 	for prog in $PROGS
 	do
 		result=$(timeout "$TIMEOUT" ./$prog "$N" "$EPS" "$HEAT")
-		result=${result:-'TIMEOUT'}
+		result=${result:-'TIME-OUT'}
 		printf '%-10s' "$result"
 	done
 	echo
