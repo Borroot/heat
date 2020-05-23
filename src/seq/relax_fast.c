@@ -50,13 +50,11 @@ int main(int argc, char *argv[])
 	init(a, N, HEAT);
 	init(b, N, HEAT);
 
-	int iterations = 0;
 	double *tmp;
 	do {
 		tmp = a;
 		a = b;
 		b = tmp;
-		iterations++;
 	} while(!relaxAndStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
