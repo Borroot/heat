@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 	init(a, N, HEAT);
 	init(b, N, HEAT);
 
-	printf("size   : %d M (%d MB)\n", N/1000000, (int)(N*sizeof(double) / (1024*1024)));
+	printf("size   : %f M (%d MB)\n", N/1000000, (int)(N*sizeof(double) / (1024*1024)));
 	printf("epsilon: %f\n", EPS);
 	printf("heat   : %f\n", HEAT);
 
