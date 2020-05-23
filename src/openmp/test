@@ -25,7 +25,7 @@ do
 	cd "$folder"
 	echo -e "\nTest cases for $folder."
 
-	make clean > /dev/null
+	trap "make clean > /dev/null; exit 1" SIGINT
 	make > /dev/null
 
 	PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
