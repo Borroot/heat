@@ -7,7 +7,7 @@
 //
 // allocate a vector of length "n"
 //
-double *allocVector( int n)
+double *allocVector(int n)
 {
 	double *v;
 	v = (double *)malloc( n*sizeof(double));
@@ -17,7 +17,7 @@ double *allocVector( int n)
 //
 // initialise the values of the given vector "out" of len gth "n"
 //
-void init( double *out, int n, int h)
+void init(double *out, int n, int h)
 {
 	int i;
 
@@ -31,7 +31,7 @@ void init( double *out, int n, int h)
 //
 // print the values of a given vector "out" of length "n"
 //
-void print( double *out, int n)
+void print(double *out, int n)
 {
 	int i;
 
@@ -47,7 +47,7 @@ void print( double *out, int n)
 // computes values in vector "out" from those in vector "in"
 // assuming both are of length "n"
 //
-void relax( double *in, double *out, int n)
+void relax(double *in, double *out, int n)
 {
 	int i;
 	for( i=1; i<n-1; i++) {
@@ -59,7 +59,7 @@ void relax( double *in, double *out, int n)
 // checks the convergence criterion:
 // true, iff for all indices i, we have |out[i] - in[i]| <= eps
 //
-bool isStable( double *old, double *new, int n, double eps)
+bool isStable(double *old, double *new, int n, double eps)
 {
 	int i;
 	bool res=true;
