@@ -15,9 +15,10 @@ Improvements:
     \item Combined relaxation and stability check into one loop
     \item Check for malloc failure
 \end{itemize}
+N, EPS and HEAT can be passed as arguments to the program.
 \section{openMP}
 Use no reduction, because then the other threads will still calculate \texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed.
-
+Use of openMP's support for for-loops in \verb init  and \verb relaxAndStable .
 \section{MPI}
 
 \section{Performance}
