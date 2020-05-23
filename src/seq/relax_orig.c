@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
+#include <omp.h>
 
 //
 // allocate a vector of length "n"
@@ -84,6 +85,8 @@ int main(int argc, char *argv[])
 		sscanf(argv[3], "%lf", &HEAT);
 	}
 
+	double start = omp_get_wtime();
+
 	double *a,*b, *tmp;
 	int iterations = 0;
 
@@ -106,6 +109,8 @@ int main(int argc, char *argv[])
 		iterations ++;
 	} while(!isStable(a, b, N, EPS));
 
+	double end = omp_get_wtime();
+	printf("%f\n", end - start);
 	printf("Number of iterations: %d\n", iterations);
 
 	return 0;
