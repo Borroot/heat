@@ -3,11 +3,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-//#define N 10000000  // length of the vectors
-#define N 100
-#define EPS 0.00001   // convergence criterium
-#define HEAT 10.0     // heat value on the boundary
-
 //
 // allocate a vector of length "n"
 // malloc nullptr is not being checked
@@ -21,14 +16,14 @@ double *allocVector(int n)
 //
 // initialise the values of the given vector "out" of length "n"
 //
-void init( double *out, int n)
+void init( double *out, int n, int heat)
 {
 	int i;
 
 	for( i=1; i<n; i++) {
 		out[i] = 0;
 	}
-	out[0] = HEAT;
+	out[0] = heat;
 
 }
 
@@ -81,8 +76,20 @@ bool relaxAndStable(double *in, double *out, int n, double eps) {
 	return notstable;
 }
 
-int main()
+// Commandline arguments:
+// <N> <EPS> <HEAT>
+int main(int argc, char *argv[])
 {
+    double N = 100000.0;  // length of the vectors
+    double EPS = 0.1;       // convergence criterium
+    double HEAT = 100.0;    // heat value on the boundary
+
+    if (argc == 4) {
+        sscanf(argv[1], "%lf", &N);
+        sscanf(argv[2], "%lf", &EPS);
+        sscanf(argv[3], "%lf", &HEAT);
+    }
+
 	double *a,*b, *tmp;
 	int n;
 	int iterations = 0;
@@ -90,8 +97,8 @@ int main()
 	a = allocVector(N);
 	b = allocVector(N);
 
-	init(a, N);
-	init(b, N);
+	init(a, N, HEAT);
+	init(b, N, HEAT);
 
 	n = N;
 
@@ -116,7 +123,7 @@ int main()
 		} while(!isStable(a, b, n, EPS));
 	#endif
 
-	print(b, n);
+	//print(b, n);
 	printf("Number of iterations: %d\n", iterations);
 
 	return 0;
