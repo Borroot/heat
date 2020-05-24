@@ -75,7 +75,7 @@ bool isStable(double *old, double *new, int n, double eps)
 // <N> <EPS> <HEAT>
 int main(int argc, char *argv[])
 {
-	double N = 10000000.0;  // length of the vectors
+	double N = 1000000.0;  // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
 
@@ -85,20 +85,20 @@ int main(int argc, char *argv[])
 		sscanf(argv[3], "%lf", &HEAT);
 	}
 
+	printf("size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
+	printf("epsilon: %f\n", EPS);
+	printf("heat   : %f\n", HEAT);
+
 	double start = omp_get_wtime();
 
 	double *a,*b, *tmp;
 	int iterations = 0;
 
-	a = allocVector( N);
-	b = allocVector( N);
+	a = allocVector(N);
+	b = allocVector(N);
 
 	init(a, N, HEAT);
 	init(b, N, HEAT);
-
-	printf("size   : %f M (%d MB)\n", N/1000000, (int)(N*sizeof(double) / (1024*1024)));
-	printf("epsilon: %f\n", EPS);
-	printf("heat   : %f\n", HEAT);
 
 	do {
 		tmp = a;
