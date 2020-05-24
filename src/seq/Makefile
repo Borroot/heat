@@ -1,6 +1,6 @@
 CFLAGS  = -Wall -Wextra -Werror -pedantic -O3 -fopenmp
 SOURCES = $(wildcard *.c)
-TARGETS = $(patsubst %.c,%,$(SOURCES))
+TARGETS = $(patsubst %.c, %, $(SOURCES))
 
 all: $(TARGETS)
 

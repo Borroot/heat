@@ -39,9 +39,8 @@ int isStable(double *out, double *in, int n, double eps, int count)
 			}
 		}
 		return 1;
-	} else {
-		return 0;
 	}
+	return 0;
 }
 
 
