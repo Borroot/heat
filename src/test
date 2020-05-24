@@ -173,7 +173,7 @@ header()
 # Run the tests with the given parameters, this will create one table.
 run()
 {
-	declare pre=$1 folder=$2 progs=$3 names=$4 result
+	declare pre=$1 folder=$2 progs=$3 names=$4 result count tmp
 
 	header "$folder" "$rank" "$names"
 	for (( N = MIN_N; N <= MAX_N; N = N * 10 ))
@@ -181,10 +181,28 @@ run()
 		printf '%-12s' "$N"
 		for prog in $progs
 		do
-			# TODO Implement multiple iterations.
-			result=$(timeout "$TIMEOUT" $pre ./"$prog" "$N" "$EPS" "$HEAT" 2> /dev/null)
-			result=${result:-'TIME-OUT'}
-			printf '%-10s' "$result"
+			result=0.0
+			count=0
+
+			# Calculate the result a few times.
+			for (( i = 0; i < ITERATIONS; i++ ))
+			do
+				tmp=$(timeout "$TIMEOUT" $pre ./"$prog" "$N" "$EPS" "$HEAT" 2> /dev/null)
+				if [[ -n $tmp ]]
+				then
+					result=$(awk "BEGIN { print $result + $tmp }")
+					count=$(( count += 1 ))
+				fi
+			done
+
+			# Print the result.
+			if [[ $count == '0' ]]
+			then
+				printf '%-10s' 'TIME-OUT'
+			else
+				result=$(awk "BEGIN { print $result / $count }")
+				printf '%-10.6f' "$result"
+			fi
 		done
 		echo
 	done
