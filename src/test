@@ -24,7 +24,7 @@ usage()
 cleanup()
 {
 	(( VERBOSITY > 1 )) && echo -n "Cleaning up..."
-	make clean
+	cd ${1:-.} && make clean --silent && cd - > /dev/null
 	(( VERBOSITY > 1 )) && echo -e " finished!\n"
 }
 
@@ -33,7 +33,7 @@ compile()
 {
 	trap "cleanup; exit 1" SIGINT
 	(( VERBOSITY > 1 )) && echo -n "Compiling..."
-	make
+	cd ${1:-.} && make --silent && cd - > /dev/null
 	(( VERBOSITY > 1 )) && echo -e " finished!\n"
 }
 
@@ -112,21 +112,22 @@ show_variables()
 	else
 		echo -e "$TIMEOUT\n$EPS\n$HEAT\n$RANKS\n$ITERATIONS"
 	fi
+
+	if (( TEST_SEQ + TEST_OPENMP + TEST_MPI == 0 ))
+	then
+		error "Please select at least one suite to test (-A, -S, -O, -M)."
+		exit 1
+	fi
 }
 
-test_sequential()
+# Run all the tests for the given folder.
+tests()
 {
-	:
-}
+	compile "$1"
 
-test_openmp()
-{
-	:
-}
 
-test_mpi()
-{
-	:
+
+	cleanup "$1"
 }
 
 main()
@@ -135,19 +136,15 @@ main()
 	show_hardware
 	show_variables
 
-	if (( TEST_SEQ + TEST_OPENMP + TEST_MPI == 0 ))
-	then
-		error "Please select at least one suite to test (-A, -S, -O, -M)."
-	fi
-	compile
+	[[ $TEST_SEQ    == 1 ]] && tests seq
+	[[ $TEST_OPENMP == 1 ]] && tests openmp
+	[[ $TEST_MPI    == 1 ]] && tests mpi
 
-	cleanup
 	exit 0
 }
 
 main "$@"
 
-printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
 for folder in $FOLDERS
 do
 	cd "$folder"

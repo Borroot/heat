@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 {
 	int N = 1000000;    // length of the vectors
 	double EPS = 0.1;       // convergence criterium
-	double HEAT = 100.0;    // heat value on the boundary	
+	double HEAT = 100.0;    // heat value on the boundary
 
 	if (argc == 4) {
 		sscanf(argv[1], "%d", &N);
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	double start = omp_get_wtime();
 
 	double *a = allocVector(2*N);
-	double *b = a + N; 
+	double *b = a + N;
 
 	init(a, N, HEAT);
 	init(b, N, HEAT);
