@@ -18,15 +18,14 @@ readonly TIMEOUT=${timeout:-'10'}
 readonly EPS=${eps:-'0.1'}
 readonly HEAT=${heat:-'100.0'}
 
-printf 'TIMEOUT = %s\nEPSILON = %s\nHEAT    = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
+trap "make clean > /dev/null; exit 1" SIGINT
+make > /dev/null
 
+printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
 for folder in $FOLDERS
 do
 	cd "$folder"
 	echo -e "\nTest cases for $folder."
-
-	trap "make clean > /dev/null; exit 1" SIGINT
-	make > /dev/null
 
 	PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
 	NAMES=$(echo "$PROGS" | sed -E 's/relax_//g')
@@ -50,6 +49,7 @@ do
 		echo
 	done
 
-	make clean > /dev/null
 	cd ..
 done
+
+make clean > /dev/null

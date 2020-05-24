@@ -1,6 +1,7 @@
 CFLAGS  = -Wall -Wextra -Werror -pedantic -O3 -fopenmp
-SOURCES = $(wildcard *.c)
-TARGETS = $(patsubst %.c,%,$(SOURCES))
+SOURCES = $(shell find . -type f -name '*.c')
+OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
+TARGETS = $(patsubst %.c, %,   $(SOURCES))
 
 all: $(TARGETS)
 
@@ -11,6 +12,6 @@ $(TARGETS): % : %.o
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o $(TARGETS)
+	rm -f $(OBJECTS) $(TARGETS)
 
 .PHONY: all clean
