@@ -21,6 +21,17 @@ void init(double *out, int n, int heat)
 	out[0] = heat;
 }
 
+void print(double *out, int n)
+{
+	int i;
+
+	fprintf(stderr, "<");
+	for( i=0; i<n; i++) {
+		fprintf(stderr, " %f", out[i]);
+	}
+	fprintf(stderr, ">\n");
+}
+
 void relax(double* in, double* out, int n) {
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
@@ -69,6 +80,9 @@ int main(int argc, char *argv[])
 	} while(!isStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
+
+	print(b, N);
+
 	printf("%f\n", end - start);
 	fprintf(stderr, "Iterations: %d\n", iterations);
 
