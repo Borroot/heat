@@ -21,20 +21,26 @@ void init(double *out, int n, int heat)
 	out[0] = heat;
 }
 
-int relaxAndStable(double *in, double *out, int n, double eps) {
-	int stable = 1;
+void relax(double* in, double* out, int n) {
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-		stable = stable && (fabs(out[i] - in[i]) <= eps);
 	}
-	return stable;
+}
+
+int isStable(double* in, double* out, int n, double eps) {
+	for(int i = 1; i < n-1; i++) {
+		if(!(fabs(out[i] - in[i]) <= eps)) return 0;
+	}
+	return 1;
 }
 
 int main(int argc, char *argv[])
 {
-	double N = 100000.0;    // length of the vectors
+	double N = 1000000.0;    // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
+
+	int iterations = 0;
 
 	if (argc == 4) {
 		sscanf(argv[1], "%lf", &N);
@@ -55,10 +61,13 @@ int main(int argc, char *argv[])
 		tmp = a;
 		a = b;
 		b = tmp;
-	} while(!relaxAndStable(a, b, N, EPS));
+		relax(a, b, N);
+		iterations++;
+	} while(!isStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
+	printf("Iterations: %d\n", iterations);
 
 	return 0;
 }
