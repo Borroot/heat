@@ -29,24 +29,26 @@ void relax(double* in, double* out, int n) {
 
 int isStable(double* in, double* out, int n, double eps) {
 	for(int i = 1; i < n-1; i++) {
-		if(!(fabs(out[i] - in[i]) <= eps)) return 0;
+		if(fabs(out[i] - in[i]) > eps) return 0;
 	}
 	return 1;
 }
 
 int main(int argc, char *argv[])
 {
-	double N = 1000000.0;    // length of the vectors
+	int N = 1000000;    // length of the vectors
 	double EPS = 0.1;       // convergence criterium
-	double HEAT = 100.0;    // heat value on the boundary
-
-	int iterations = 0;
+	double HEAT = 100.0;    // heat value on the boundary	
 
 	if (argc == 4) {
-		sscanf(argv[1], "%lf", &N);
+		sscanf(argv[1], "%d", &N);
 		sscanf(argv[2], "%lf", &EPS);
 		sscanf(argv[3], "%lf", &HEAT);
 	}
+
+	fprintf(stderr, "size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
+	fprintf(stderr, "epsilon: %f\n", EPS);
+	fprintf(stderr, "heat   : %f\n", HEAT);
 
 	double start = omp_get_wtime();
 
@@ -56,6 +58,7 @@ int main(int argc, char *argv[])
 	init(a, N, HEAT);
 	init(b, N, HEAT);
 
+	int iterations = 0;
 	double *tmp;
 	do {
 		tmp = a;
@@ -67,7 +70,7 @@ int main(int argc, char *argv[])
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
-	printf("Iterations: %d\n", iterations);
+	fprintf(stderr, "Iterations: %d\n", iterations);
 
 	return 0;
 }
