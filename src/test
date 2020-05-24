@@ -67,13 +67,13 @@ arguments()
 	done
 
 	readonly MIN_N=${minN:-'100000'}
-	readonly MAX_N=${maxN:-'100000000'}
+	readonly MAX_N=${maxN:-'10000000'}
 	readonly MIN_RANK=${minrank:-'1'}
 	readonly MAX_RANK=${maxrank:-'4'}
 	readonly TIMEOUT=${timeout:-'3'}
 	readonly EPS=${eps:-'0.1'}
 	readonly HEAT=${heat:-'100.0'}
-	readonly ITERATIONS=${iterations:-'3'}
+	readonly ITERATIONS=${iterations:-'1'}
 	readonly FOLDER=$folder
 	readonly VERBOSITY=${verbosity:-'2'}
 	readonly HARDWARE=${hardware:-'0'}  # only show hardware info yes/no
