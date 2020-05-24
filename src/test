@@ -6,44 +6,59 @@
 # 1, 2 and 3, where 1 can be used for piping, 2 is for normal usage and 3 is
 # for debugging purposes.
 
+# Show an error message.
+error()
+{
+	>&2 echo "[Error] $@"
+}
+
 # Show usage information of the program.
 usage()
 {
 	echo "usage: $0 [-f folder] [-t timeout] [-e eps] [-h heat] [-r ranks]"
-	echo "       [-i iterations] [-a] [-v verbosity]"
+	echo "       [-i iterations] [-a] [-A] [-S] [-O] [-M] [-v verbosity]"
 	exit $1
 }
 
 # Cleanup all the files.
 cleanup()
 {
+	(( VERBOSITY > 1 )) && echo -n "Cleaning up..."
 	make clean
+	(( VERBOSITY > 1 )) && echo -e " finished!\n"
 }
 
 # Compile all of the programs.
 compile()
 {
 	trap "cleanup; exit 1" SIGINT
+	(( VERBOSITY > 1 )) && echo -n "Compiling..."
 	make
+	(( VERBOSITY > 1 )) && echo -e " finished!\n"
 }
 
 # Parse the command line arguments and set the important variables.
 arguments()
 {
-	declare opt
-	while getopts 'f:t:e:h:r:i:v:aH' opt
+	declare opt folder timeout eps heat ranks iterations verbosity hardware \
+	        sequential openmp mpi
+	while getopts 'f:t:e:h:r:i:v:aASOMH' opt
 	do
 		case $opt in
-			f) folders=$OPTARG    ;;
-			t) timeout=$OPTARG    ;;
-			e) eps=$OPTARG        ;;
-			h) heat=$OPTARG       ;;
-			r) ranks=$OPTARG      ;;
-			i) iterations=$OPTARG ;;
-			v) verbosity=$OPTARG  ;;
-			a) hardware=1         ;;
-			H) usage 0            ;;
-			?) usage 1            ;;
+			f) folders=$OPTARG        ;;
+			t) timeout=$OPTARG        ;;
+			e) eps=$OPTARG            ;;
+			h) heat=$OPTARG           ;;
+			r) ranks=$OPTARG          ;;
+			i) iterations=$OPTARG     ;;
+			v) verbosity=$OPTARG      ;;
+			a) hardware=1             ;;
+			A) seq=1; openmp=1; mpi=1 ;;
+			S) seq=1                  ;;
+			O) openmp=1               ;;
+			M) mpi=1                  ;;
+			H) usage 0                ;;
+			?) usage 1                ;;
 		esac
 	done
 
@@ -55,10 +70,13 @@ arguments()
 	readonly ITERATIONS=${iterations:-'3'}
 	readonly VERBOSITY=${verbosity:-'2'}
 	readonly HARDWARE=${hardware:-'0'}  # only show hardware info yes/no
+	readonly TEST_SEQ=${seq:-'0'}
+	readonly TEST_OPENMP=${openmp:-'0'}
+	readonly TEST_MPI=${mpi:-'0'}
 }
 
-# Retrieve and print hardware information.
-hardware()
+# Retrieve and show hardware information.
+show_hardware()
 {
 	declare -r ARCH=$(  lscpu | grep "^Architecture" | sed -E 's/^.*: *(.*)/\1/g')
 	declare -r CPUS=$(  lscpu | grep "^CPU(s)"       | sed -E 's/^.*: *(.*)/\1/g')
@@ -70,7 +88,7 @@ hardware()
 		echo -e "Architecture: $ARCH"
 		echo -e "CPU(s):       $CPUS"
 		echo -e "CPU model:    $MODEL"
-		echo -e "Memory size:  $MEMORY"
+		echo -e "Memory size:  $MEMORY\n"
 	else
 		echo -e "$ARCH\n$CPUS\n$MODEL\n$MEMORY"
 	fi
@@ -78,21 +96,56 @@ hardware()
 	[[ $HARDWARE == '1' ]] && exit 0
 }
 
+# Show the variables that are being used.
+show_variables()
+{
+	if (( VERBOSITY > 1 ))
+	then
+		echo -e "Sequential: $TEST_SEQ"
+		echo -e "OpenMP:     $TEST_OPENMP"
+		echo -e "MPI:        $TEST_MPI\n"
+		echo -e "Time-out:   $TIMEOUT"
+		echo -e "Epsilon:    $EPS"
+		echo -e "Heat:       $HEAT"
+		echo -e "Ranks:      $RANKS"
+		echo -e "Iterations: $ITERATIONS\n"
+	else
+		echo -e "$TIMEOUT\n$EPS\n$HEAT\n$RANKS\n$ITERATIONS"
+	fi
+}
+
+test_sequential()
+{
+	:
+}
+
+test_openmp()
+{
+	:
+}
+
+test_mpi()
+{
+	:
+}
+
 main()
 {
 	arguments "$@"
-	hardware
+	show_hardware
+	show_variables
+
+	if (( TEST_SEQ + TEST_OPENMP + TEST_MPI == 0 ))
+	then
+		error "Please select at least one suite to test (-A, -S, -O, -M)."
+	fi
 	compile
-
-
 
 	cleanup
 	exit 0
 }
 
 main "$@"
-
-make > /dev/null
 
 printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
 for folder in $FOLDERS
