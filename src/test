@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# AUTHOR: Bram Pulles
+
+# This program can be used to extensively test all of the different versions we
+# wrote for the heat diffusion computations. There are three verbosity levels
+# 1, 2 and 3, where 1 can be used for piping, 2 is for normal usage and 3 is
+# for debugging purposes.
+
+# Show usage information of the program.
+usage()
+{
+	echo "usage: $0 [-f folder] [-t timeout] [-e eps] [-h heat] [-r ranks]"
+	echo "       [-i iterations] [-a] [-v verbosity]"
+	exit $1
+}
+
+# Cleanup all the files.
+cleanup()
+{
+	make clean
+}
+
+# Compile all of the programs.
+compile()
+{
+	trap "cleanup; exit 1" SIGINT
+	make
+}
+
+# Parse the command line arguments and set the important variables.
+arguments()
+{
+	declare opt
+	while getopts 'f:t:e:h:r:i:v:aH' opt
+	do
+		case $opt in
+			f) folders=$OPTARG    ;;
+			t) timeout=$OPTARG    ;;
+			e) eps=$OPTARG        ;;
+			h) heat=$OPTARG       ;;
+			r) ranks=$OPTARG      ;;
+			i) iterations=$OPTARG ;;
+			v) verbosity=$OPTARG  ;;
+			a) hardware=1         ;;
+			H) usage 0            ;;
+			?) usage 1            ;;
+		esac
+	done
+
+	readonly FOLDERS=${folders:-$(find . -mindepth 1 -type d)}
+	readonly TIMEOUT=${timeout:-'10'}
+	readonly EPS=${eps:-'0.1'}
+	readonly HEAT=${heat:-'100.0'}
+	readonly RANKS=${ranks:-'8'}
+	readonly ITERATIONS=${iterations:-'3'}
+	readonly VERBOSITY=${verbosity:-'2'}
+	readonly HARDWARE=${hardware:-'0'}  # only show hardware info yes/no
+}
+
+# Retrieve and print hardware information.
+hardware()
+{
+	declare -r ARCH=$(  lscpu | grep "^Architecture" | sed -E 's/^.*: *(.*)/\1/g')
+	declare -r CPUS=$(  lscpu | grep "^CPU(s)"       | sed -E 's/^.*: *(.*)/\1/g')
+	declare -r MODEL=$( lscpu | grep "^Model name"   | sed -E 's/^.*: *(.*)/\1/g')
+	declare -r MEMORY=$(lsmem | grep "^Total online" | sed -E 's/^.*: *(.*)/\1/g')
+
+	if (( VERBOSITY > 1 ))
+	then
+		echo -e "Architecture: $ARCH"
+		echo -e "CPU(s):       $CPUS"
+		echo -e "CPU model:    $MODEL"
+		echo -e "Memory size:  $MEMORY"
+	else
+		echo -e "$ARCH\n$CPUS\n$MODEL\n$MEMORY"
+	fi
+
+	[[ $HARDWARE == '1' ]] && exit 0
+}
+
+main()
+{
+	arguments "$@"
+	hardware
+	compile
+
+
+
+	cleanup
+	exit 0
+}
+
+main "$@"
+
+make > /dev/null
+
+printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
+for folder in $FOLDERS
+do
+	cd "$folder"
+	echo -e "\nTest cases for $folder."
+
+	PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
+	NAMES=$(echo "$PROGS" | sed -E 's/relax_//g')
+
+	printf '%-10s' 'N'
+	for name in $NAMES
+	do
+		printf '%-10s' "$name"
+	done
+	echo
+
+	for (( N = 1000; N < 1000000000; N = N * 10 ))
+	do
+		printf '%-10s' "$N"
+		for prog in $PROGS
+		do
+			result=$(timeout "$TIMEOUT" ./$prog "$N" "$EPS" "$HEAT")
+			result=${result:-'TIME-OUT'}
+			printf '%-10s' "$result"
+		done
+		echo
+	done
+
+	cd ..
+done

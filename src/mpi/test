@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# AUTHOR: Bram Pulles
+
+
+while getopts 'f:t:e:h:H' opt
+do
+	case $opt in
+		f) folders=$OPTARG ;;
+		t) timeout=$OPTARG ;;
+		e) eps=$OPTARG     ;;
+		h) heat=$OPTARG    ;;
+		?|H) echo "usage: $0 [-f folder] [-t timeout] [-e eps] [-h heat]" && exit 1 ;;
+	esac
+done
+
+readonly FOLDERS=${folders:-$(find . -mindepth 1 -type d)}
+readonly TIMEOUT=${timeout:-'10'}
+readonly EPS=${eps:-'0.1'}
+readonly HEAT=${heat:-'100.0'}
+
+trap "make clean > /dev/null; exit 1" SIGINT
+make > /dev/null
+
+printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
+for folder in $FOLDERS
+do
+	cd "$folder"
+	echo -e "\nTest cases for $folder."
+
+	PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
+	NAMES=$(echo "$PROGS" | sed -E 's/relax_//g')
+
+	printf '%-10s' 'N'
+	for name in $NAMES
+	do
+		printf '%-10s' "$name"
+	done
+	echo
+
+	for (( N = 1000; N < 1000000000; N = N * 10 ))
+	do
+		printf '%-10s' "$N"
+		for prog in $PROGS
+		do
+			result=$(timeout "$TIMEOUT" mpirun -N 4 ./$prog "$N" "$EPS" "$HEAT")
+			result=${result:-'TIME-OUT'}
+			printf '%-10s' "$result"
+		done
+		echo
+	done
+
+	cd ..
+done
+
+make clean > /dev/null
