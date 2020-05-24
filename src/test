@@ -14,6 +14,19 @@ usage()
 	exit $1
 }
 
+# Cleanup all the files.
+cleanup()
+{
+	make clean
+}
+
+# Compile all of the programs.
+compile()
+{
+	trap "cleanup; exit 1" SIGINT
+	make
+}
+
 # Parse the command line arguments and set the important variables.
 arguments()
 {
@@ -69,13 +82,16 @@ main()
 {
 	arguments "$@"
 	hardware
+	compile
 
+
+
+	cleanup
 	exit 0
 }
 
 main "$@"
 
-trap "make clean > /dev/null; exit 1" SIGINT
 make > /dev/null
 
 printf 'TIME-OUT = %s\nEPSILON  = %s\nHEAT     = %s\n' "$TIMEOUT" "$EPS" "$HEAT"
@@ -108,5 +124,3 @@ do
 
 	cd ..
 done
-
-make clean > /dev/null
