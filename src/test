@@ -15,42 +15,46 @@ error()
 # Show usage information of the program.
 usage()
 {
-	echo "usage: $0 [-f folder] [-t timeout] [-e eps] [-h heat] [-r ranks]"
-	echo "       [-i iterations] [-a] [-A] [-S] [-O] [-M] [-v verbosity]"
+	echo "usage: $0 [-n minN] [-N maxN] [-r minRANK] [-R maxRANK] [-t timeout]"
+	echo "       [-e eps] [-h heat] [-i iterations] [-f folder] [-A] [-S] [-O] [-M]"
+	echo "       [-a] [-H] [-v verbosity]"
 	exit $1
 }
 
 # Cleanup all the files.
 cleanup()
 {
-	(( VERBOSITY > 1 )) && echo -n "Cleaning up..."
+	(( VERBOSITY > 2 )) && echo -n "Cleaning up $1..."
 	cd ${1:-.} && make clean --silent && cd - > /dev/null
-	(( VERBOSITY > 1 )) && echo -e " finished!\n"
+	(( VERBOSITY > 2 )) && echo -e " finished!\n"
 }
 
 # Compile all of the programs.
 compile()
 {
 	trap "cleanup; exit 1" SIGINT
-	(( VERBOSITY > 1 )) && echo -n "Compiling..."
+	(( VERBOSITY > 2 )) && echo -n "Compiling $1..."
 	cd ${1:-.} && make --silent && cd - > /dev/null
-	(( VERBOSITY > 1 )) && echo -e " finished!\n"
+	(( VERBOSITY > 2 )) && echo -e " finished!\n"
 }
 
 # Parse the command line arguments and set the important variables.
 arguments()
 {
-	declare opt folder timeout eps heat ranks iterations verbosity hardware \
-	        sequential openmp mpi
-	while getopts 'f:t:e:h:r:i:v:aASOMH' opt
+	declare opt minN maxN timeout eps heat ranks iterations folder verbosity \
+	        hardware sequential openmp mpi minrank maxrank
+	while getopts 'n:N:t:e:h:r:R:i:f:v:aASOMH' opt
 	do
 		case $opt in
-			f) folders=$OPTARG        ;;
+			n) minN=$OPTARG           ;;
+			N) maxN=$OPTARG           ;;
+			r) minrank=$OPTARG        ;;
+			R) maxrank=$OPTARG        ;;
 			t) timeout=$OPTARG        ;;
 			e) eps=$OPTARG            ;;
 			h) heat=$OPTARG           ;;
-			r) ranks=$OPTARG          ;;
 			i) iterations=$OPTARG     ;;
+			f) folder=$OPTARG         ;;
 			v) verbosity=$OPTARG      ;;
 			a) hardware=1             ;;
 			A) seq=1; openmp=1; mpi=1 ;;
@@ -62,12 +66,15 @@ arguments()
 		esac
 	done
 
-	readonly FOLDERS=${folders:-$(find . -mindepth 1 -type d)}
-	readonly TIMEOUT=${timeout:-'10'}
+	readonly MIN_N=${minN:-'100000'}
+	readonly MAX_N=${maxN:-'100000000'}
+	readonly MIN_RANK=${minrank:-'1'}
+	readonly MAX_RANK=${maxrank:-'4'}
+	readonly TIMEOUT=${timeout:-'3'}
 	readonly EPS=${eps:-'0.1'}
 	readonly HEAT=${heat:-'100.0'}
-	readonly RANKS=${ranks:-'8'}
 	readonly ITERATIONS=${iterations:-'3'}
+	readonly FOLDER=$folder
 	readonly VERBOSITY=${verbosity:-'2'}
 	readonly HARDWARE=${hardware:-'0'}  # only show hardware info yes/no
 	readonly TEST_SEQ=${seq:-'0'}
@@ -88,12 +95,12 @@ show_hardware()
 		echo -e "Architecture: $ARCH"
 		echo -e "CPU(s):       $CPUS"
 		echo -e "CPU model:    $MODEL"
-		echo -e "Memory size:  $MEMORY\n"
+		echo -e "Memory size:  $MEMORY"
 	else
 		echo -e "$ARCH\n$CPUS\n$MODEL\n$MEMORY"
 	fi
 
-	[[ $HARDWARE == '1' ]] && exit 0
+	[[ $HARDWARE == '1' ]] && exit 0 || echo
 }
 
 # Show the variables that are being used.
@@ -104,13 +111,17 @@ show_variables()
 		echo -e "Sequential: $TEST_SEQ"
 		echo -e "OpenMP:     $TEST_OPENMP"
 		echo -e "MPI:        $TEST_MPI\n"
+		echo -e "Min N:      $MIN_N"
+		echo -e "Max N:      $MAX_N"
+		echo -e "Min rank:   $MIN_RANK"
+		echo -e "Max rank:   $MAX_RANK"
 		echo -e "Time-out:   $TIMEOUT"
 		echo -e "Epsilon:    $EPS"
 		echo -e "Heat:       $HEAT"
-		echo -e "Ranks:      $RANKS"
 		echo -e "Iterations: $ITERATIONS\n"
 	else
-		echo -e "$TIMEOUT\n$EPS\n$HEAT\n$RANKS\n$ITERATIONS"
+		echo -e "$MIN_N\n$MAX_N\n$MIN_RANK\n$MAX_RANK\n$TIMEOUT\n$EPS\n$HEAT"
+		echo -e "$ITERATIONS"
 	fi
 
 	if (( TEST_SEQ + TEST_OPENMP + TEST_MPI == 0 ))
@@ -120,12 +131,94 @@ show_variables()
 	fi
 }
 
+# Set the FOLDERS variable correctly according to what the user chose.
+folders()
+{
+	if [[ -z $FOLDER ]]
+	then
+		FOLDERS=$(find "$1" -mindepth 1 -type d)
+	elif [[ -d $1/$FOLDER ]]
+	then
+		FOLDERS=$1/$FOLDER
+	else
+		FOLDERS=
+		error "The folder $1/$FOLDER does not exist."
+		return 1
+	fi
+}
+
+# Print a nice header for a table.
+header()
+{
+	if (( VERBOSITY > 1 ))
+	then
+		# Print the title of the table.
+		if [[ $1 =~ ^mpi* ]]
+		then
+			echo -e "Test cases for $1 with rank $2."
+		else
+			echo -e "Test cases for $1."
+		fi
+
+		# Print the top bar of the table.
+		printf '%-12s' 'N'
+		for name in $3
+		do
+			printf '%-10s' "$name"
+		done
+		echo
+	fi
+}
+
+# Run the tests with the given parameters, this will create one table.
+run()
+{
+	declare pre=$1 folder=$2 progs=$3 names=$4 result
+
+	header "$folder" "$rank" "$names"
+	for (( N = MIN_N; N <= MAX_N; N = N * 10 ))
+	do
+		printf '%-12s' "$N"
+		for prog in $progs
+		do
+			# TODO Implement multiple iterations.
+			result=$(timeout "$TIMEOUT" $pre ./"$prog" "$N" "$EPS" "$HEAT" 2> /dev/null)
+			result=${result:-'TIME-OUT'}
+			printf '%-10s' "$result"
+		done
+		echo
+	done
+	echo
+}
+
+# Run the tests for mpi.
+run_mpi()
+{
+	for (( rank = MIN_RANK; rank <= MAX_RANK; rank++ ))
+	do
+		run "mpirun -N $rank" "$@"
+	done
+}
+
 # Run all the tests for the given folder.
 tests()
 {
+	folders "$1" || return 1
 	compile "$1"
 
+	declare folder progs names
+	for folder in $FOLDERS
+	do
+		progs=$(find "$folder" -type f | grep -E 'relax_' | grep -v '\.[co]')
+		names=$(echo "$progs" | sed -E 's;.*/;;g' | sed -E 's/relax_//g')
 
+		if [[ $1 == mpi ]]
+		then
+			run_mpi "$folder" "$progs" "$names"
+		else
+			run "" "$folder" "$progs" "$names"
+		fi
+	done
 
 	cleanup "$1"
 }
@@ -139,38 +232,6 @@ main()
 	[[ $TEST_SEQ    == 1 ]] && tests seq
 	[[ $TEST_OPENMP == 1 ]] && tests openmp
 	[[ $TEST_MPI    == 1 ]] && tests mpi
-
-	exit 0
 }
 
 main "$@"
-
-for folder in $FOLDERS
-do
-	cd "$folder"
-	echo -e "\nTest cases for $folder."
-
-	PROGS=$(command ls | command grep -E 'relax_' | command grep -v '\.[co]')
-	NAMES=$(echo "$PROGS" | sed -E 's/relax_//g')
-
-	printf '%-10s' 'N'
-	for name in $NAMES
-	do
-		printf '%-10s' "$name"
-	done
-	echo
-
-	for (( N = 1000; N < 1000000000; N = N * 10 ))
-	do
-		printf '%-10s' "$N"
-		for prog in $PROGS
-		do
-			result=$(timeout "$TIMEOUT" ./$prog "$N" "$EPS" "$HEAT")
-			result=${result:-'TIME-OUT'}
-			printf '%-10s' "$result"
-		done
-		echo
-	done
-
-	cd ..
-done

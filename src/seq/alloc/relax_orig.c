@@ -85,9 +85,9 @@ int main(int argc, char *argv[])
 		sscanf(argv[3], "%lf", &HEAT);
 	}
 
-	printf("size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
-	printf("epsilon: %f\n", EPS);
-	printf("heat   : %f\n", HEAT);
+	fprintf(stderr, "size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
+	fprintf(stderr, "epsilon: %f\n", EPS);
+	fprintf(stderr, "heat   : %f\n", HEAT);
 
 	double start = omp_get_wtime();
 
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
-	printf("Number of iterations: %d\n", iterations);
+	fprintf(stderr, "Number of iterations: %d\n", iterations);
 
 	return 0;
 }
