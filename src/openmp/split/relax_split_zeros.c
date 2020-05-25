@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		b = tmp;
 		if (zero < N) zero += 1;
 		relax(a, b, zero);
-	} while(!isStable(a, b, zero, EPS));
+	} while(!isStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
