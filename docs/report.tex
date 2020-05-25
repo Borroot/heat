@@ -10,9 +10,14 @@
 
 \pagebreak
 \section{Sequential}
-The following improvements have been made to the sequential version of the relaxtion algorithm.
+The following possible improvements have been tried out in the sequential version of the algorithm.
 \begin{itemize}
-    \item Combined relaxation and stability check into one loop.
+    \item Combining relaxation and stability check into one loop. Since the array resulting of the relaxation ends with some amount of zero's (possibly none) and we know where those zero's will start, we terminate the loop just before arriving at the zero's.
+    \item Not combining relaxation and stability. Terminating the relaxation loop at the point for which we know there will only be zero's in the remainder of the \texttt{out} array, as explained in the previous bullet. Terminating the stability check once some \texttt{i} for which \texttt{(fabs(out[i] - in[i]) > eps)} holds is found, checking this condition is faster than keeping track of \texttt{res = res \&\& ( fabs( out[i] - in[i]) <= eps)}.
+\end{itemize}
+The following improvements have been made to the sequential version of the relaxation algorithm. This list includes those mentioned above that resulted in the fastest implementations.
+\begin{itemize}
+    \item Termination relaxation and stability loops as early as possible.
     \item Check for malloc failure.
 \end{itemize}
 N, EPS and HEAT can be passed as arguments to the program for easy testing.
