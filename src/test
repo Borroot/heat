@@ -243,6 +243,7 @@ tests()
 
 main()
 {
+	export LC_ALL=C
 	arguments "$@"
 	show_hardware
 	show_variables
