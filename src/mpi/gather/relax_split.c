@@ -46,25 +46,28 @@ int main(int argc, char *argv[])
 		sscanf(argv[3], "%lf", &HEAT);
 	}
 
+	int num_ranks, my_rank;
 	MPI_Init(&argc, &argv);
 	double start = MPI_Wtime();
 
-	int num_ranks, my_rank;
 	MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    int L = N / num_ranks;
+  int L = N / num_ranks;
+
+	printf("TEST%d\n", my_rank);
+	printf("TEST2%d\n", num_ranks);
 
 	double *a = allocVector(N);
 	double *b = allocVector(N);
-    double *sub = allocVector(L);
+  double *sub = allocVector(L);
 
 	init(a, N, HEAT);
 	init(b, N, HEAT);
-    init(sub, L, 0);
-    if(my_rank == 0) sub[0] = HEAT;
+  init(sub, L, 0);
+  if(my_rank == 0) sub[0] = HEAT;
 
 	double *tmp;
-    int stable;
+  int stable;
 	do {
 		tmp = a;
 		a = b;

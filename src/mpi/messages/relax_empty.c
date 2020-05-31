@@ -30,9 +30,19 @@ int relaxAndStable(double *in, double *out, int n, double eps) {
 	return stable;
 }
 
+void print(double *out, int n) {
+	int i;
+
+	fprintf(stderr, "<");
+	for( i=0; i<n; i++) {
+		fprintf(stderr, " %f", out[i]);
+	}
+	fprintf(stderr, ">\n");
+}
+
 int main(int argc, char *argv[])
 {
-	double N = 100000.0;    // length of the vectors
+	double N = 100.0;    // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
 
@@ -49,6 +59,8 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
+	if(my_rank == 0) {
+
 	double *a = allocVector(N);
 	double *b = allocVector(N);
 
@@ -61,6 +73,8 @@ int main(int argc, char *argv[])
 		a = b;
 		b = tmp;
 	} while(!relaxAndStable(a, b, N, EPS));
+
+	}
 
 	double end = MPI_Wtime();
 	MPI_Finalize();

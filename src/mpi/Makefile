@@ -1,4 +1,4 @@
-CFLAGS  = -Wall -Wextra -Werror -pedantic -O3
+CFLAGS  = -Wall -Wextra -pedantic -O3
 CC      = mpicc
 
 SOURCES = $(shell find . -type f -name '*.c')
