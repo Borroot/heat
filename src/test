@@ -96,8 +96,8 @@ show_hardware()
 		echo -e "CPU(s):       $CPUS"
 		echo -e "CPU model:    $MODEL"
 		echo -e "Memory size:  $MEMORY"
-	else
-		echo -e "$ARCH\n$CPUS\n$MODEL\n$MEMORY"
+	#else
+		#echo -e "$ARCH\n$CPUS\n$MODEL\n$MEMORY"
 	fi
 
 	[[ $HARDWARE == '1' ]] && exit 0 || echo
@@ -119,9 +119,9 @@ show_variables()
 		echo -e "Epsilon:    $EPS"
 		echo -e "Heat:       $HEAT"
 		echo -e "Iterations: $ITERATIONS\n"
-	else
-		echo -e "$MIN_N\n$MAX_N\n$MIN_RANK\n$MAX_RANK\n$TIMEOUT\n$EPS\n$HEAT"
-		echo -e "$ITERATIONS"
+	#else
+		#echo -e "$MIN_N\n$MAX_N\n$MIN_RANK\n$MAX_RANK\n$TIMEOUT\n$EPS\n$HEAT"
+		#echo -e "$ITERATIONS"
 	fi
 
 	if (( TEST_SEQ + TEST_OPENMP + TEST_MPI == 0 ))
