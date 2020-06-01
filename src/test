@@ -159,7 +159,10 @@ header()
 		else
 			echo -e "Test cases for $1."
 		fi
+	fi
 
+	if (( VERBOSITY > 0 ))
+	then
 		# Print the top bar of the table.
 		printf '%-12s' 'N'
 		for name in $3
