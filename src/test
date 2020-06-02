@@ -167,7 +167,7 @@ header()
 		printf '%-12s' 'N'
 		for name in $3
 		do
-			printf '%-10s' "$name"
+			printf '%-12.12s' "$name"
 		done
 		echo
 	fi
@@ -181,7 +181,7 @@ run()
 	header "$folder" "$rank" "$names"
 	for (( N = MIN_N; N <= MAX_N; N = N * 10 ))
 	do
-		printf '%-12s' "$N"
+		printf '%-12.12s' "$N"
 		for prog in $progs
 		do
 			result=0.0
@@ -201,10 +201,10 @@ run()
 			# Print the result.
 			if [[ $count == '0' ]]
 			then
-				printf '%-10s' 'TIME-OUT'
+				printf '%-12.11s' 'TIME-OUT'
 			else
 				result=$(awk "BEGIN { print $result / $count }")
-				printf '%-10.6f' "$result"
+				printf '%-12.6f' "$result"
 			fi
 		done
 		echo
