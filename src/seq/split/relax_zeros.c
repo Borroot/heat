@@ -87,5 +87,8 @@ int main(int argc, char *argv[])
 	printf("%f\n", end - start);
 	fprintf(stderr, "Iterations: %d\n", iterations);
 
+	free(a);
+	free(b);
+
 	return 0;
 }

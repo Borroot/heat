@@ -74,5 +74,8 @@ int main(int argc, char *argv[])
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
 
+	free(a);
+	free(b);
+
 	return 0;
 }

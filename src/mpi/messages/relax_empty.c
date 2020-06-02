@@ -60,20 +60,21 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
 	if(my_rank == 0) {
+		double *a = allocVector(N);
+		double *b = allocVector(N);
 
-	double *a = allocVector(N);
-	double *b = allocVector(N);
+		init(a, N, HEAT);
+		init(b, N, HEAT);
 
-	init(a, N, HEAT);
-	init(b, N, HEAT);
+		double *tmp;
+		do {
+			tmp = a;
+			a = b;
+			b = tmp;
+		} while(!relaxAndStable(a, b, N, EPS));
 
-	double *tmp;
-	do {
-		tmp = a;
-		a = b;
-		b = tmp;
-	} while(!relaxAndStable(a, b, N, EPS));
-
+		free(a);
+		free(b);
 	}
 
 	double end = MPI_Wtime();

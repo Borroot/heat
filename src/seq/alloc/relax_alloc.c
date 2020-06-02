@@ -24,7 +24,6 @@ void init(double *out, int n, int heat)
 void relax(double* in, double* out, int n) {
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-		
 	}
 }
 
@@ -72,6 +71,8 @@ int main(int argc, char *argv[])
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
 	fprintf(stderr, "Iterations: %d\n", iterations);
+
+	free(a);
 
 	return 0;
 }

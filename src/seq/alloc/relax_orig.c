@@ -113,5 +113,8 @@ int main(int argc, char *argv[])
 	printf("%f\n", end - start);
 	fprintf(stderr, "Number of iterations: %d\n", iterations);
 
+	free(a);
+	free(b);
+
 	return 0;
 }

@@ -28,10 +28,10 @@ void relax(double* in, double* out, int from, int n, int N) {
 	int end = from + n - (from + n == N ? 1 : 0);
 	for(int i = start; i < end; i++) {
 		// if (i - from < 0 || i - from >= n) {
-		// 	printf("ERROR ABOUT TO SEGFAULT1\n");
+		//	printf("ERROR ABOUT TO SEGFAULT1\n");
 		// }
 		// if (i <= 1 || i >= N - 1) {
-		// 	printf("ERROR ABOUT TO SEGFAULT:  %d \n", i);
+		//	printf("ERROR ABOUT TO SEGFAULT:  %d \n", i);
 		// }
 		out[i - from] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
 	}
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
 	// Make sure that N is divisible by the number of ranks - 1
-	N -= N % (num_ranks - 1); 
+	N -= N % (num_ranks - 1);
 	int blocksize = N / (num_ranks - 1);
 
 	double *a = allocVector(N);
@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 			MPI_Send(a,N, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 		}
 		a[0] = 1;
+		free(b);
 	} else {
 		int from = blocksize * (my_rank - 1);
 		double *b = allocVector(blocksize);
@@ -114,12 +115,13 @@ int main(int argc, char *argv[])
 		do {
 			MPI_Recv(a, N, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			stable = !a[0];
-			
+
 			if (!stable) {
 				relax(a,b,from,blocksize,N);
 				MPI_Send(b,blocksize, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
 			}
 		} while (!stable);
+		free(b);
 	}
 
 	double end = MPI_Wtime();
@@ -128,6 +130,8 @@ int main(int argc, char *argv[])
 	if(my_rank == 0) {
 		printf("%f\n", end - start);
 	}
+
+	free(a);
 
 	return 0;
 }

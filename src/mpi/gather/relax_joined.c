@@ -78,5 +78,9 @@ int main(int argc, char *argv[])
 		printf("%f\n", end - start);
 	}
 
+	free(a);
+	free(b);
+	free(sub);
+
 	return 0;
 }
