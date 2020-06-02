@@ -21,7 +21,7 @@ void init(double *out, int n, int heat)
 	out[0] = heat;
 }
 
-int relaxAndStable(double *in, double *out, int n, double eps, int zero) {
+int relaxAndStable(double *in, double *out, double eps, int zero) {
 	int stable = 1;
 	for(int i = 1; i < zero-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 		a = b;
 		b = tmp;
 		if (zero < N) zero += 1;
-	} while(!relaxAndStable(a, b, N, EPS));
+	} while(!relaxAndStable(a, b, EPS, zero));
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
