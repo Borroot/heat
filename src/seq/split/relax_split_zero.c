@@ -21,13 +21,17 @@ void init(double *out, int n, int heat)
 	out[0] = heat;
 }
 
-int relaxAndStable(double *in, double *out, int n, double eps) {
-	int stable = 1;
+void relax(double* in, double* out, int n) {
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-		stable = stable && (fabs(out[i] - in[i]) <= eps);
 	}
-	return stable;
+}
+
+int isStable(double* in, double* out, int n, double eps) {
+	for(int i = 1; i < n-1; i++) {
+		if(fabs(out[i] - in[i]) > eps) return 0;
+	}
+	return 1;
 }
 
 int main(int argc, char *argv[])
@@ -37,14 +41,10 @@ int main(int argc, char *argv[])
 	double HEAT = 100.0;    // heat value on the boundary
 
 	if (argc == 4) {
-		sscanf(argv[1], "%d", &N);
+		sscanf(argv[1], "%d",  &N);
 		sscanf(argv[2], "%lf", &EPS);
 		sscanf(argv[3], "%lf", &HEAT);
 	}
-
-	fprintf(stderr, "size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
-	fprintf(stderr, "epsilon: %f\n", EPS);
-	fprintf(stderr, "heat   : %f\n", HEAT);
 
 	double start = omp_get_wtime();
 
@@ -54,18 +54,18 @@ int main(int argc, char *argv[])
 	init(a, N, HEAT);
 	init(b, N, HEAT);
 
-	int iterations = 0;
+	int zero = 3;
 	double *tmp;
 	do {
 		tmp = a;
 		a = b;
 		b = tmp;
-		iterations++;
-	} while(!relaxAndStable(a,b,N,EPS));
+		if (zero < N) zero += 1;
+		relax(a, b, zero);
+	} while(!isStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
-	fprintf(stderr, "Iterations: %d\n", iterations);
 
 	free(a);
 	free(b);

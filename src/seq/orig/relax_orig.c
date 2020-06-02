@@ -5,9 +5,6 @@
 #include <stdio.h>
 #include <omp.h>
 
-//
-// allocate a vector of length "n"
-//
 double *allocVector(int n)
 {
 	double *v;
@@ -15,9 +12,6 @@ double *allocVector(int n)
 	return v;
 }
 
-//
-// initialise the values of the given vector "out" of len gth "n"
-//
 void init(double *out, int n, int h)
 {
 	int i;
@@ -29,25 +23,6 @@ void init(double *out, int n, int h)
 
 }
 
-//
-// print the values of a given vector "out" of length "n"
-//
-void print(double *out, int n)
-{
-	int i;
-
-	printf( "<");
-	for( i=0; i<n; i++) {
-		printf( " %f", out[i]);
-	}
-	printf( ">\n");
-}
-
-//
-// individual step of the 3-point stencil
-// computes values in vector "out" from those in vector "in"
-// assuming both are of length "n"
-//
 void relax(double *in, double *out, int n)
 {
 	int i;
@@ -56,10 +31,6 @@ void relax(double *in, double *out, int n)
 	}
 }
 
-//
-// checks the convergence criterion:
-// true, iff for all indices i, we have |out[i] - in[i]| <= eps
-//
 bool isStable(double *old, double *new, int n, double eps)
 {
 	int i;
@@ -71,11 +42,9 @@ bool isStable(double *old, double *new, int n, double eps)
 	return res;
 }
 
-// Commandline arguments:
-// <N> <EPS> <HEAT>
 int main(int argc, char *argv[])
 {
-	double N = 1000000.0;  // length of the vectors
+	double N = 1000000.0;   // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
 
@@ -85,14 +54,8 @@ int main(int argc, char *argv[])
 		sscanf(argv[3], "%lf", &HEAT);
 	}
 
-	fprintf(stderr, "size   : %f M (%d MB)\n", N/1000000.0, (int)(N*sizeof(double) / (1024*1024)));
-	fprintf(stderr, "epsilon: %f\n", EPS);
-	fprintf(stderr, "heat   : %f\n", HEAT);
-
 	double start = omp_get_wtime();
-
 	double *a,*b, *tmp;
-	int iterations = 0;
 
 	a = allocVector(N);
 	b = allocVector(N);
@@ -105,13 +68,10 @@ int main(int argc, char *argv[])
 		a = b;
 		b = tmp;
 		relax(a, b, N);
-		// print(b, n);
-		iterations ++;
 	} while(!isStable(a, b, N, EPS));
 
 	double end = omp_get_wtime();
 	printf("%f\n", end - start);
-	fprintf(stderr, "Number of iterations: %d\n", iterations);
 
 	free(a);
 	free(b);

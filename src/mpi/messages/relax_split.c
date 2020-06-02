@@ -27,12 +27,6 @@ void relax(double* in, double* out, int from, int n, int N) {
 	int start = from + (from == 0 ? 1 : 0);
 	int end = from + n - (from + n == N ? 1 : 0);
 	for(int i = start; i < end; i++) {
-		// if (i - from < 0 || i - from >= n) {
-		//	printf("ERROR ABOUT TO SEGFAULT1\n");
-		// }
-		// if (i <= 1 || i >= N - 1) {
-		//	printf("ERROR ABOUT TO SEGFAULT:  %d \n", i);
-		// }
 		out[i - from] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
 	}
 }
@@ -44,19 +38,9 @@ int isStable(double* in, double* out, int n, double eps) {
 	return 1;
 }
 
-void print(double *out, int n) {
-	int i;
-
-	fprintf(stderr, "<");
-	for( i=0; i<n; i++) {
-		fprintf(stderr, " %f", out[i]);
-	}
-	fprintf(stderr, ">\n");
-}
-
 int main(int argc, char *argv[])
 {
-	int N = 100;    // length of the vectors
+	int N = 100;            // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
 
