@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# AUTHOR: Bram Pulles
+
+readonly OUTPUT_FOLDER=output
+mkdir -p "$OUTPUT_FOLDER"
+
+readonly DEFAULTS="-v 0 -n 1000000 -N 10000000 -r 1 -R 4 -t 5 -e 0.01 -h 100.0 -i 1"
+readonly NUM_RUNS=20
+
+readonly runs=(
+	"-S -f major"
+	"-O -f major"
+	"-M -f major"
+)
+
+for run in ${!runs[*]}
+do
+	count=$(command ls "$OUTPUT_FOLDER" | wc -l)
+	output_file=${OUTPUT_FOLDER}/output$count.csv
+
+    printf "./tester %s\n" "$DEFAULTS ${runs[$run]}"
+    printf "./tester %s\n" "$DEFAULTS ${runs[$run]}" > $output_file
+
+	for (( i = 0; i < NUM_RUNS; i++ ))
+	do
+		./tester $DEFAULTS ${runs[$run]} >> $output_file
+	done
+done
