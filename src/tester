@@ -17,7 +17,7 @@ usage()
 {
 	echo "usage: $0 [-n minN] [-N maxN] [-r minRANK] [-R maxRANK] [-t timeout]"
 	echo "       [-e eps] [-h heat] [-i iterations] [-f folder] [-A] [-S] [-O] [-M]"
-	echo "       [-a] [-H] [-v verbosity]"
+	echo "       [-m] [-a] [-H] [-v verbosity]"
 	exit $1
 }
 
@@ -43,7 +43,7 @@ arguments()
 {
 	declare opt minN maxN timeout eps heat ranks iterations folder verbosity \
 	        hardware sequential openmp mpi minrank maxrank
-	while getopts 'n:N:t:e:h:r:R:i:f:v:aASOMH' opt
+	while getopts 'n:N:t:e:h:r:R:i:f:v:maASOMH' opt
 	do
 		case $opt in
 			n) minN=$OPTARG           ;;
@@ -56,6 +56,7 @@ arguments()
 			i) iterations=$OPTARG     ;;
 			f) folder=$OPTARG         ;;
 			v) verbosity=$OPTARG      ;;
+			m) make=0                 ;;
 			a) hardware=1             ;;
 			A) seq=1; openmp=1; mpi=1 ;;
 			S) seq=1                  ;;
@@ -75,6 +76,7 @@ arguments()
 	readonly HEAT=${heat:-'100.0'}
 	readonly ITERATIONS=${iterations:-'1'}
 	readonly FOLDER=$folder
+	readonly MAKE=${make:-1}
 	readonly VERBOSITY=${verbosity:-'2'}
 	readonly HARDWARE=${hardware:-'0'}  # only show hardware info yes/no
 	readonly TEST_SEQ=${seq:-'0'}
@@ -253,7 +255,7 @@ run_mpi()
 tests()
 {
 	folders "$1" || return 1
-	compile "$1"
+	[[ $MAKE == 1 ]] && compile "$1"
 
 	declare folder progs names
 	for folder in $FOLDERS
@@ -269,7 +271,7 @@ tests()
 		fi
 	done
 
-	cleanup "$1"
+	[[ $MAKE == 1 ]] && cleanup "$1"
 }
 
 main()

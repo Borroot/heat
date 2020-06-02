@@ -4,13 +4,19 @@
 readonly OUTPUT_FOLDER=output
 mkdir -p "$OUTPUT_FOLDER"
 
-readonly DEFAULTS="-v 0 -n 1000000 -N 10000000 -r 1 -R 4 -t 5 -e 0.01 -h 100.0 -i 1"
+readonly DEFAULTS="-m -v 0 -n 1000000 -N 1000000 -t 10 -e 0.01 -h 100.0 -i 1"
 readonly NUM_RUNS=20
 
 readonly runs=(
 	"-S -f major"
+	"-S -f original"
 	"-O -f major"
-	"-M -f major"
+	"-O -f reduction"
+	"-O -f schedule"
+	"-M -f major -r 1 -R 1"
+	"-M -f major -r 2 -R 2"
+	"-M -f major -r 3 -R 3"
+	"-M -f major -r 4 -R 4"
 )
 
 for run in ${!runs[*]}
