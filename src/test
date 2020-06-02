@@ -150,7 +150,7 @@ folders()
 # Print a nice header for a table.
 header()
 {
-	if (( VERBOSITY > 1 ))
+	if (( VERBOSITY > 0 ))
 	then
 		# Print the title of the table.
 		if [[ $1 =~ ^mpi* ]]
@@ -158,6 +158,14 @@ header()
 			echo -e "Test cases for $1 with rank $2."
 		else
 			echo -e "Test cases for $1."
+		fi
+	else
+		# Print the title in CSV format.
+		if [[ $1 =~ ^mpi* ]]
+		then
+			printf '%s,%s\n' "$1" "$2"
+		else
+			printf '%s\n' "$1"
 		fi
 	fi
 
@@ -170,6 +178,14 @@ header()
 			printf '%-12.12s' "$name"
 		done
 		echo
+	else
+		# Print the top bar in CSV format.
+		echo -n 'N,'
+		for name in $3
+		do
+			printf '%s,' "$name"
+		done | sed -E 's/,$//g'
+		echo
 	fi
 }
 
@@ -181,7 +197,7 @@ run()
 	header "$folder" "$rank" "$names"
 	for (( N = MIN_N; N <= MAX_N; N = N * 10 ))
 	do
-		printf '%-12.12s' "$N"
+		(( VERBOSITY > 0 )) && printf '%-12.10s' "$N" || printf '%s,' "$N"
 		for prog in $progs
 		do
 			result=0.0
@@ -198,15 +214,27 @@ run()
 				fi
 			done
 
-			# Print the result.
-			if [[ $count == '0' ]]
+			if (( VERBOSITY > 0 ))
 			then
-				printf '%-12.11s' 'TIME-OUT'
+				# Print the result.
+				if [[ $count == '0' ]]
+				then
+					printf '%-12.10s' 'TIME-OUT'
+				else
+					result=$(awk "BEGIN { print $result / $count }")
+					printf '%-12.6f' "$result"
+				fi
 			else
-				result=$(awk "BEGIN { print $result / $count }")
-				printf '%-12.6f' "$result"
+				# Print in CSV format.
+				if [[ $count == '0' ]]
+				then
+					printf 'TIME-OUT,'
+				else
+					result=$(awk "BEGIN { print $result / $count }")
+					printf '%.6f,' "$result"
+				fi
 			fi
-		done
+		done | sed -E 's/,$//g'
 		echo
 	done
 	echo
