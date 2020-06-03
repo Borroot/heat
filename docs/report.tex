@@ -21,12 +21,12 @@ The following improvements have been made to the sequential version of the relax
     \item Check for malloc failure.
     \item Free the allocated memory at the end of the program.
 \end{itemize}
-We made the last improvement after running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors. 
+We made the last improvement after running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors.
 N, EPS and HEAT can be passed as command-line arguments to the program for easy testing.
 
 \section{openMP}
 
-Do not use reduction, because then the other threads will still calculate the value of 
+Do not use reduction, because then the other threads will still calculate the value of
 \texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed. Use openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions.
 
 \section{MPI}
