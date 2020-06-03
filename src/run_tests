@@ -19,6 +19,8 @@ readonly runs=(
 	"-M -f major -r 4 -R 4"
 )
 
+make
+
 for run in ${!runs[*]}
 do
 	count=$(command ls "$OUTPUT_FOLDER" | wc -l)
@@ -32,3 +34,16 @@ do
 		./tester $DEFAULTS ${runs[$run]} >> $output_file
 	done
 done
+
+make clean
+
+# Do some post processing on the formatting of the files.
+cd "$OUTPUT_FOLDER"
+sed -i '/^[[:space:]]*$/d' *
+for file in $(\ls)
+do
+	cat "$file" | sort -ur > tmp
+	cat tmp > "$file"
+done
+rm -f tmp
+cd -
