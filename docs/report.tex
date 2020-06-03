@@ -26,8 +26,9 @@ N, EPS and HEAT can be passed as command-line arguments to the program for easy 
 
 \section{openMP}
 
-Do not use reduction, because then the other threads will still calculate the value of 
-\texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed. Use openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions.
+We found that openMP's reduction is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this.\\
+Interestingly, though the "split" version performed faster in the sequential setting, the "joined" version performs faster in openMP. 
+This might be because of the overhead caused by synchronizing the threads.
 
 \section{MPI}
 For MPI we compared the performance of versions in which  we use \texttt{MPI\_Allgather}
