@@ -19,13 +19,19 @@ The following improvements have been made to the sequential version of the relax
 \begin{itemize}
     \item Termination relaxation and stability loops as early as possible.
     \item Check for malloc failure.
+    \item Free the allocated memory at the end of the program.
 \end{itemize}
-N, EPS and HEAT can be passed as arguments to the program for easy testing.
+We made the last improvement after running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors. 
+N, EPS and HEAT can be passed as command-line arguments to the program for easy testing.
 
 \section{openMP}
-Do not use reduction, because then the other threads will still calculate \texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed. Use openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions.
+
+Do not use reduction, because then the other threads will still calculate the value of 
+\texttt{fabs(out[i] - in[i]) <= eps}, while this is no longer needed. Use openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions.
 
 \section{MPI}
+For MPI we compared the performance of versions in which  we use \texttt{MPI\_Allgather}
+and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that seperately using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages.
 
 \section{Performance}
 
