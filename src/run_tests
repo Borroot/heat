@@ -4,7 +4,7 @@
 readonly OUTPUT_FOLDER="../runs/heat"
 mkdir -p "$OUTPUT_FOLDER"
 
-readonly DEFAULTS="-m -v 0 -n 100000 -N 100000 -t 3 -e 0.001 -h 10000.0 -i 1"
+readonly DEFAULTS="-m -v 0 -n 100000 -N 100000 -t 10 -e 0.001 -i 1"
 readonly NUM_RUNS=20
 
 readonly runs=(
@@ -26,12 +26,13 @@ do
 	count=$(command ls "$OUTPUT_FOLDER" | wc -l)
 	output_file=${OUTPUT_FOLDER}/output$count.csv
 
-    printf "./tester %s\n" "$DEFAULTS ${runs[$run]}"
-    printf "./tester %s\n" "$DEFAULTS ${runs[$run]}" > $output_file
-
-	for (( i = 0; i < NUM_RUNS; i++ ))
+	for (( j = 10; j <= 10000000; j = j * 10 ))
 	do
-		./tester $DEFAULTS ${runs[$run]} >> $output_file
+		printf "./tester %s\n" "$DEFAULTS ${runs[$run]} -h $j >> $output_file"
+		for (( i = 0; i < NUM_RUNS; i++ ))
+		do
+			./tester $DEFAULTS ${runs[$run]} -h $j >> $output_file
+		done
 	done
 done
 
