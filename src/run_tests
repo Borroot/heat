@@ -8,8 +8,8 @@ readonly DEFAULTS="-m -v 0 -n 100000 -N 100000 -t 10 -e 0.001 -i 1"
 readonly NUM_RUNS=20
 
 readonly runs=(
-	"-S -f major"
-	"-S -f original"
+	#"-S -f major"
+	#"-S -f original"
 	"-O -f major"
 	"-O -f reduction"
 	"-O -f schedule"
