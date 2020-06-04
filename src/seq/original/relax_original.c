@@ -44,12 +44,12 @@ bool isStable(double *old, double *new, int n, double eps)
 
 int main(int argc, char *argv[])
 {
-	double N = 1000000.0;   // length of the vectors
+	int N = 100000;   // length of the vectors
 	double EPS = 0.1;       // convergence criterium
 	double HEAT = 100.0;    // heat value on the boundary
 
 	if (argc == 4) {
-		sscanf(argv[1], "%lf", &N);
+		sscanf(argv[1], "%d", &N);
 		sscanf(argv[2], "%lf", &EPS);
 		sscanf(argv[3], "%lf", &HEAT);
 	}
