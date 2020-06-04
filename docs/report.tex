@@ -1,4 +1,5 @@
 \documentclass[a4paper]{article}
+\usepackage{graphicx}
 
 \author{Steven Bronsveld\\Wouter Damen\\Kirsten Hagenaars\\Bram Pulles}
 \title{\textbf{Heat Diffusion: openMP and MPI}}
@@ -9,6 +10,48 @@
 \tableofcontents
 
 \pagebreak
+\section{Hardware and software}
+Table \ref{tab: hardware} shows the hardware specifications of the CPU from the computer that is used for getting test results. The computer further has 16 GB of ram and is running Arch Linux with kernel version 5.6.15-arch1-1. All of the programs are compiled with gcc version 10.1.0 and the following compiler flags: \texttt{-Wall -Wextra -Werror -pedantic -O3}.
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        Architecture:        &    x86\_64\\\hline
+        CPU op-mode(s):      &    32-bit, 64-bit\\\hline
+        Byte Order:          &    Little Endian\\\hline
+        Address sizes:       &    39 bits physical, 48 bits virtual\\\hline
+        CPU(s):              &    8\\\hline
+        On-line CPU(s) list: &    0-7\\ \hline
+        Thread(s) per core:  &    2\\\hline
+        Core(s) per socket:  &    4\\\hline
+        Socket(s):           &    1\\\hline
+        NUMA node(s):        &    1\\\hline
+        Vendor ID:           &    GenuineIntel\\\hline
+        CPU family:          &    6\\\hline
+        Model:               &    94\\\hline
+        Model name:          &    Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz\\\hline
+        Stepping:            &    3\\\hline
+        CPU MHz:             &    1200.022\\\hline
+        CPU max MHz:         &    3500.0000\\\hline
+        CPU min MHz:         &    800.0000\\\hline
+        BogoMIPS:            &    5202.65\\\hline
+        Virtualization:      &    VT-x\\\hline
+        L1d cache:           &    128 KiB\\\hline
+        L1i cache:           &    128 KiB\\\hline
+        L2 cache:            &    1 MiB\\\hline
+        L3 cache:            &    6 MiB\\\hline
+        NUMA node0 CPU(s):   &    0-7\\
+        \hline
+    \end{tabular}
+    \caption{Hardware specifications.}
+    \label{tab: hardware}
+\end{table}
+
+\section{Tester}
+In order to gather performance information we use a tester made by one of the team members. The tester is written is Bash and supports a wide variety of options, including: minimum and maximum N value and rank over which will be iterated, the epsilon value, the initial heat value, a timeout, the number of iterations to run, and the suite which we want to test (MPI, openMP, sequential or any combination of these). It further has a verbosity which can be set so we can produce human readable output or output in the CSV format so it is easy to post process the test data and make graphs from them.
+
+At last we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
+    
 \section{Sequential}
 The following possible improvements have been tried out in the sequential version of the algorithm.
 \begin{itemize}
@@ -22,12 +65,21 @@ The following improvements have been made to the sequential version of the relax
     \item Free the allocated memory at the end of the program.
 \end{itemize}
 We made the last improvement after running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors.
-N, EPS and HEAT can be passed as command-line arguments to the program for easy testing.
+N, EPS and HEAT can be passed as command-line arguments to the program for easy testing.\\
+\includegraphics[scale = 0.5]{graphs/Comparison of sequential versions.png}
 
-\section{openMP}
+\section{OpenMP}
+For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. For this comparison we have used $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$, and every version was executed $20$ times. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.\\
+\includegraphics[scale = 0.5]{graphs/Comparison of openMP scheduling strategies.png}
 
-We found that openMP's reduction is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this.\\
-Interestingly, though the "split" version performed faster in the sequential setting, the "joined" version performs faster in openMP.
+\noindent This may not be clearly visible from the figure, but we found that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
+
+We have tried out whether using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between stopping early and using reduction is depicted in the figure below.\\
+\includegraphics[scale = 0.5]{graphs/Comparison of versions with and without reduction.png}\\
+
+As stated before, we have made multiple optimized sequential versions. We have applied the openMP's support for loops on all of these versions to see which performes best when openMP is used. The following figure shows the results. \\
+\includegraphics[scale = 0.5]{graphs/Comparison of openMP versions.png}
+\noindent Interestingly, though the "split" version performed faster in the sequential setting, the "joined" version performs faster in openMP.
 This might be because of the overhead caused by synchronizing the threads.
 
 \section{MPI}
@@ -36,5 +88,12 @@ and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the
 
 \section{Performance}
 
+\section{Task division}
+Here we give a overview of the task division between the members of our group.
+\begin{itemize}
+    \item \textbf{Steven Bronsveld and Wouter Damen}: They worked on MPI.
+    \item \textbf{Kirsten Hagenaars and Bram Pulles}: They worked on openMP. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots which are seen in the report using Python.
+    \item \textbf{All}: We frequently met each other online to discuss our findings and the progress we made on the project. Each one of us wrote the section in the report corresponding to the code on which he/she has worked. We all worked on improving the sequential version before we splitted into two groups and dived into openMP and MPI seperately. The decision to split into pairs was made to reduce the overhead of communication when working on the individual sections. We also shared ideas for optimizations and gave each other mental support.
+\end{itemize}
 
 \end{document}
