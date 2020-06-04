@@ -1,4 +1,4 @@
-CFLAGS  = -Wall -Wextra -Werror -pedantic -O2 -fopenmp
+CFLAGS  = -Wall -Wextra -Werror -pedantic -O3 -fopenmp
 SOURCES = $(shell find . -type f -name '*.c')
 OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
 TARGETS = $(patsubst %.c, %,   $(SOURCES))
