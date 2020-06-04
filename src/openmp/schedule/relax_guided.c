@@ -27,7 +27,7 @@ int relaxAndStable(double *in, double *out, int n, double eps) {
 	#pragma omp parallel for schedule(guided)
 	for(int i = 1; i < n-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-		stable = stable && (fabs(out[i] - in[i]) <= eps);
+		if (stable) stable =  (fabs(out[i] - in[i]) <= eps);
 	}
 	return stable;
 }

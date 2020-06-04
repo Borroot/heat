@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 # AUTHOR: Bram Pulles
 
-readonly OUTPUT_FOLDER="../runs/N=10^3"
+readonly OUTPUT_FOLDER="../runs/heat"
 mkdir -p "$OUTPUT_FOLDER"
 
-readonly DEFAULTS="-m -v 0 -n 1000 -N 1000 -t 10 -e 0.01 -h 100.0 -i 1"
+readonly DEFAULTS="-m -v 0 -n 1000000 -N 1000000 -t 3 -e 0.001 -h 10000.0 -i 1"
 readonly NUM_RUNS=20
 
 readonly runs=(
-	"-S -f major"
-	"-S -f original"
+	#"-S -f major"
+	#"-S -f original"
 	"-O -f major"
-	"-O -f reduction"
-	"-O -f schedule"
-	"-M -f major -r 1 -R 1"
-	"-M -f major -r 2 -R 2"
-	"-M -f major -r 3 -R 3"
-	"-M -f major -r 4 -R 4"
+	#"-O -f reduction"
+	#"-O -f schedule"
+	#"-M -f major -r 1 -R 1"
+	#"-M -f major -r 2 -R 2"
+	#"-M -f major -r 3 -R 3"
+	#"-M -f major -r 4 -R 4"
 )
 
 make

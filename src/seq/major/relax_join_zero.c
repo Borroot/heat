@@ -25,7 +25,7 @@ int relaxAndStable(double *in, double *out, double eps, int zero) {
 	int stable = 1;
 	for(int i = 1; i < zero-1; i++) {
 		out[i] = 0.25*in[i-1] + 0.5*in[i] + 0.25*in[i+1];
-		stable = stable && (fabs(out[i] - in[i]) <= eps);
+		if (stable) stable =  (fabs(out[i] - in[i]) <= eps);
 	}
 	return stable;
 }

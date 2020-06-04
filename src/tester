@@ -2,9 +2,7 @@
 # AUTHOR: Bram Pulles
 
 # This program can be used to extensively test all of the different versions we
-# wrote for the heat diffusion computations. There are three verbosity levels
-# 1, 2 and 3, where 1 can be used for piping, 2 is for normal usage and 3 is
-# for debugging purposes.
+# wrote for the heat diffusion computations.
 
 # Show an error message.
 error()
@@ -260,7 +258,7 @@ tests()
 	declare folder progs names
 	for folder in $FOLDERS
 	do
-		progs=$(find "$folder" -type f | grep -E 'relax_' | grep -v '\.[co]')
+		progs=$(find "$folder" -type f -name '*.c' | sed 's/.c//g')
 		names=$(echo "$progs" | sed -E 's;.*/;;g' | sed -E 's/relax_//g')
 
 		if [[ $1 == mpi ]]
