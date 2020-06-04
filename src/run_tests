@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # AUTHOR: Bram Pulles
 
-readonly OUTPUT_FOLDER="../runs/N=10^7"
+readonly OUTPUT_FOLDER="../runs/N=10^3"
 mkdir -p "$OUTPUT_FOLDER"
 
-readonly DEFAULTS="-m -v 0 -n 10000000 -N 10000000 -t 10 -e 0.01 -h 100.0 -i 1"
+readonly DEFAULTS="-m -v 0 -n 1000 -N 1000 -t 10 -e 0.01 -h 100.0 -i 1"
 readonly NUM_RUNS=20
 
 readonly runs=(
@@ -46,4 +46,4 @@ do
 	cat tmp > "$file"
 done
 rm -f tmp
-cd -
+cd - > /dev/null
