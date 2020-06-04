@@ -51,25 +51,31 @@ Table \ref{tab: hardware} shows the hardware specifications of the CPU from the 
 In order to gather performance information we use a tester made by one of the team members. The tester is written is Bash and supports a wide variety of options, including: minimum and maximum N value and rank over which will be iterated, the epsilon value, the initial heat value, a timeout, the number of iterations to run, and the suite which we want to test (MPI, openMP, sequential or any combination of these). It further has a verbosity which can be set so we can produce human readable output or output in the CSV format so it is easy to post process the test data and make graphs from them.
 
 At last we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
+
+% TODO Explain what split join and zero means
     
 \section{Sequential}
-The following possible improvements have been tried out in the sequential version of the algorithm.
-\begin{itemize}
-    \item Combining relaxation and stability check into one loop. Since the array resulting of the relaxation ends with some amount of zero's (possibly none) and we know where those zero's will start, we terminate the loop just before arriving at the zero's.
-    \item Not combining relaxation and stability. Terminating the relaxation loop at the point for which we know there will only be zero's in the remainder of the \texttt{out} array, as explained in the previous bullet. Terminating the stability check once some \texttt{i} for which \texttt{(fabs(out[i] - in[i]) > eps)} holds is found, checking this condition is faster than keeping track of \texttt{res = res \&\& ( fabs( out[i] - in[i]) <= eps)}.
-\end{itemize}
-The following improvements have been made to the sequential version of the relaxation algorithm. This list includes those mentioned above that resulted in the fastest implementations.
-\begin{itemize}
-    \item Termination relaxation and stability loops as early as possible.
-    \item Check for malloc failure.
-    \item Free the allocated memory at the end of the program.
-\end{itemize}
-We made the last improvement after running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors.
-N, EPS and HEAT can be passed as command-line arguments to the program for easy testing.\\
-\includegraphics[scale = 0.5]{graphs/Comparison of sequential versions.png}
+\textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$, furthermore every version was executed $20$ times where every individual run is shown by a dot in the figure.}\\
 
+\noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we added the freeing of the allocated memory at the end of the program. 
+
+We have also implemented the option of passing the values for N, EPS and HEAT as command-line arguments to the program, which allows us to test more easily.
+
+Since we came up with multiple possible improvements to the program, we decided to make multiple versions and compare these. Here is a list of these versions and how they differ from the original program (aside from what is mentioned above).
+\begin{itemize}
+    \item In the \textit{split} version, the relaxation step and the stability check are done in separate loops. The stability check terminates once some \texttt{i} for which \texttt{(fabs(out[i] - in[i]) > eps)} holds is found, checking this condition is faster than keeping track of \texttt{res = res \&\& ( fabs( out[i] - in[i]) <= eps)}.
+    \item In the \textit{split\_zero} version, the relaxation step and the stability check are also done in separate loops. It alse terminates the stability check early in the same way as this is done in \textit{split}. Since the array resulting of the relaxation ends with some amount of zero's (possibly none) and we know where those zero's will start, we terminate the loop just before arriving at the zero's.
+    \item In the \textit{join} version, the relaxation step and stability check are combined into one loop. 
+    \item In the \textit{join\_zero} version, the relaxation step and stability check are also combined into one loop. Just like \textit{split\_zero}, the loop terminates early since we know when the remainder of the array is only zero's.
+\end{itemize}
+
+The figure below shows a comparison of runtimes between the resulting versions. The runtime averages are connected by a dotted line.\\
+\includegraphics[scale = 0.5]{graphs/Comparison of sequential versions.png}\\
+As you can see in the figure, both \textit{split} and \textit{join} are slower than the original version, which is due to the added check for malloc failure. Elaborate on findings....
+
+The same naming for versions is also used in the openMP and MPI versions of the versions given above.
 \section{OpenMP}
-For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. For this comparison we have used $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$, and every version was executed $20$ times. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.\\
+For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.\\
 \includegraphics[scale = 0.5]{graphs/Comparison of openMP scheduling strategies.png}
 
 \noindent This may not be clearly visible from the figure, but we found that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
@@ -78,8 +84,8 @@ We have tried out whether using openMP's reduction decreases runtimes. We found 
 \includegraphics[scale = 0.5]{graphs/Comparison of versions with and without reduction.png}\\
 
 As stated before, we have made multiple optimized sequential versions. We have applied the openMP's support for loops on all of these versions to see which performes best when openMP is used. The following figure shows the results. \\
-\includegraphics[scale = 0.5]{graphs/Comparison of openMP versions.png}
-\noindent Interestingly, though the "split" version performed faster in the sequential setting, the "joined" version performs faster in openMP.
+\includegraphics[scale = 0.5]{graphs/Comparison of openMP versions.png}\\
+\noindent Surprisingly, eventhough the \textit{split} version performed faster in the sequential setting, the \textit{joined} version performs faster in openMP.
 This might be because of the overhead caused by synchronizing the threads.
 
 \section{MPI}
@@ -87,12 +93,18 @@ For MPI we compared the performance of versions in which  we use \texttt{MPI\_Al
 and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that seperately using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages.
 
 \section{Performance}
+We made a general observation regarding the size of the vector. Whenever we increase the vector size all of the non-zero versions become considerably slower, while the zero versions keep the same runtime, since they ignore a huge part of the vector, namely everything after the first zero. This optimization has a small impact when the heat value is increased or the epsilon value is decreased, because then both the zero's and the non-zero's versions converge to about the same number of computations assuming the vector size is relatively small.
+
+The sequential algorithms are faster when split is used than when join is used. Because with split we can stop checking if the array is stable when we reached a point which is not below epsilon yet. With join we can stop computing the difference between the two arrays giving increased performance, however we still need to check in that case if we already found a value for proves that the array is still unstable. This means that join needs to do more work than the split versions, so the split version is faster than the join version.
+
+% openmp faster join, omdat split niet parallel
+% TODO MPI conclusions
 
 \section{Task division}
 Here we give a overview of the task division between the members of our group.
 \begin{itemize}
     \item \textbf{Steven Bronsveld and Wouter Damen}: They worked on MPI.
-    \item \textbf{Kirsten Hagenaars and Bram Pulles}: They worked on openMP. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots which are seen in the report using Python.
+    \item \textbf{Kirsten Hagenaars and Bram Pulles}: They worked on openMP. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots in this report using Python.
     \item \textbf{All}: We frequently met each other online to discuss our findings and the progress we made on the project. Each one of us wrote the section in the report corresponding to the code on which he/she has worked. We all worked on improving the sequential version before we splitted into two groups and dived into openMP and MPI seperately. The decision to split into pairs was made to reduce the overhead of communication when working on the individual sections. We also shared ideas for optimizations and gave each other mental support.
 \end{itemize}
 
