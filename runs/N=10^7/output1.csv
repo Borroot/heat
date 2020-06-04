@@ -1,4 +1,0 @@
-./tester -m -v 0 -n 10000000 -N 10000000 -t 10 -e 0.01 -h 100.0 -i 1 -S -f original
-seq/original
-N,original
-10000000,TIME-OUT
