@@ -33,7 +33,7 @@ void relax(double *in, double *out, int n)
 int isStable(double *out, double *in, int n, double eps)
 {
 	for(int i = 0; i < n; i++) {
-		if (fabs(out[i] - in[i]) <= eps) {
+		if (fabs(out[i] - in[i]) > eps) {
 			return 0;
 		}
 	}

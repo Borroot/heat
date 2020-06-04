@@ -180,7 +180,7 @@ header()
 		echo
 	else
 		# Print the top bar in CSV format.
-		echo -n 'N,'
+		echo -n 'heat,'
 		for name in $3
 		do
 			printf '%s,' "$name"
@@ -197,7 +197,7 @@ run()
 	header "$folder" "$rank" "$names"
 	for (( N = MIN_N; N <= MAX_N; N = N * 10 ))
 	do
-		(( VERBOSITY > 0 )) && printf '%-12.10s' "$N" || printf '%s,' "$N"
+		(( VERBOSITY > 0 )) && printf '%-12.10s' "$N" || printf '%s,' "$HEAT"
 		for prog in $progs
 		do
 			result=0.0
