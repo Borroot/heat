@@ -1,5 +1,3 @@
-reduction join_zero
-openmp/reduction/relax_reduction openmp/reduction/relax_join_zero
 openmp/reduction
 heat,reduction,join_zero
 10,0.581305,0.000400
