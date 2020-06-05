@@ -10,10 +10,10 @@ readonly NUM_RUNS=20
 readonly runs=(
 	#"-S -f major"
 	#"-S -f original"
-	"-O -f major"
-	"-O -f reduction"
-	"-O -f schedule"
-	"-M -f major -r 1 -R 1"
+	#"-O -f major"
+	#"-O -f reduction" fix
+	#"-O -f schedule"  fix
+	#"-M -f major -r 1 -R 1"
 	"-M -f major -r 2 -R 2"
 	"-M -f major -r 3 -R 3"
 	"-M -f major -r 4 -R 4"
@@ -26,7 +26,8 @@ do
 	count=$(command ls "$OUTPUT_FOLDER" | wc -l)
 	output_file=${OUTPUT_FOLDER}/output$count.csv
 
-	for (( j = 10; j <= 10000000; j = j * 10 ))
+	# 10000000
+	for (( j = 10; j <= 1000; j = j * 10 ))
 	do
 		printf "./tester %s\n" "$DEFAULTS ${runs[$run]} -h $j >> $output_file"
 		for (( i = 0; i < NUM_RUNS; i++ ))
