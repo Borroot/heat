@@ -103,23 +103,23 @@ The test results for these two different versions are shown in figure \ref{fig: 
 \end{figure}
 
 \section{OpenMP}
-For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.
+For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies, see figure \ref{fig: strategy heat} and \ref{fig: strategy n}. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of openMP scheduling strategies for different values of HEAT.png}
-    \caption{Scheduling strategies vs HEAT}
-    \label{fig: orig heat}
+    \includegraphics[width = 0.8\textwidth]{graphs/Comparison of openMP scheduling strategies for different values of HEAT.png}
+    \caption{openMP scheduling strategy programs.}
+    \label{fig: strategy heat}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of openMP scheduling strategies for different values of N.png}
-    \caption{Scheduling strategies vs N}
-    \label{fig: orig heat}
+    \includegraphics[width = 0.8\textwidth]{graphs/Comparison of openMP scheduling strategies for different values of N.png}
+    \caption{openMP scheduling strategy programs.}
+    \label{fig: strategy n}
 \end{figure}
 
-It is clearly visible from the figures that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
+From figure \ref{fig: orig heat} it looks like guided gives the best runtimes results, however figure \ref{fig: strategy n} also suggests static will be faster with a big vector size. We have used the static stategy for the all of the openMP versions, since at the start of the project it was not clear yet which one was the fastest and static looked like the best candidate.
 
 We have also tested if using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between using and not using reduction is shown in figure \ref{fig: reduction heat} and \ref{fig: reduction n}. It is clear that using no reduction is way more efficient.
 
