@@ -1,5 +1,7 @@
 \documentclass[a4paper]{article}
+
 \usepackage{graphicx}
+\usepackage{float}
 
 \author{Steven Bronsveld\\Wouter Damen\\Kirsten Hagenaars\\Bram Pulles}
 \title{\textbf{Heat Diffusion: openMP and MPI}}
@@ -52,10 +54,8 @@ In order to gather performance information we use a tester made by one of the te
 
 Lastly, we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
 
-% TODO Explain what split join and zero means
-
 \section{Sequential}
-\textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$. Furthermore, every version was executed $20$ times and each individual run is shown by a dot in the figure.}\\
+\textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 100000$, $\texttt{eps} = 0.01$ for the comparisons on $N$ and $\texttt{eps} = 0.001$ for comparisons on heat, and $\texttt{HEAT} = 100$. Furthermore, every version was executed $20$ times of which the average is shown in the figure with a deviation shown on the resulting line draw through all the average points.}\\
 
 \noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we also added the freeing of the allocated memory at the end of the program.
 
@@ -72,36 +72,148 @@ Since we came up with multiple possible improvements to the program, we decided 
     \item
         In the \textit{join\_zero} version, the relaxation step and stability check are combined into one loop just like the \textit{join} version. Similarly to \textit{split\_zero}, the loop terminates early since we know from which point on the remainder of the array is all zero's.
 \end{itemize}
+The test results for these two different versions are shown in figure \ref{fig: seq heat} and \ref{fig: seq n}. We also show the test results of the original version in figure \ref{fig: orig heat} and \ref{fig: orig n}.
 
-% TODO Add a figure with increasing N on the x axis and time on the y axis, map the different runtimes of the sequential algorithms as lines through the average runtime of a specific N (with an optional error bar on the average points (probably won't look good because the error bars will overlap)), the different algorithms are represented with different lines having different colors. This figure will show that the zero's versions do not slow down when N increases.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of sequential versions for different values of N.png}
+    \caption{Optimized sequential programs.}
+    \label{fig: seq n}
+\end{figure}
 
-% TODO Add a figure with the heat value on the x axis and time on the y axis, we choose a fixed N and eps, e.g. N = 100000 and eps = 0.01. The rest of the figure is analogous to the figure described above, so with different colored lines (one for each version) going through the average runtimes for the different heat values. This figure will show that the advantage of the zero's versions is not really present when heat and eps increase.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of sequential versions for different values of HEAT.png}
+    \caption{Optimized sequential programs.}
+    \label{fig: seq heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Runtimes of original version for different values of N.png}
+    \caption{Original relax program.}
+    \label{fig: orig n}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Runtimes of original version for different values of HEAT.png}
+    \caption{Original relax program.}
+    \label{fig: orig heat}
+\end{figure}
 
 \section{OpenMP}
 For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.
 
-% Add a figure for N and heat on the scheduling strategies.
-\includegraphics[scale = 0.5]{../graphs/Comparison of openMP scheduling strategies.png}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of openMP scheduling strategies for different values of HEAT.png}
+    \caption{Scheduling strategies vs HEAT}
+    \label{fig: orig heat}
+\end{figure}
 
-This may not be clearly visible from the figure, but we found that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of openMP scheduling strategies for different values of N.png}
+    \caption{Scheduling strategies vs N}
+    \label{fig: orig heat}
+\end{figure}
 
-We have also tried out if using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between stopping early and using reduction is depicted in the figure below.
+It is clearly visible from the figures that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
 
-% Add a figure for N and heat on reduction yes/no.
-\includegraphics[scale = 0.5]{../graphs/Comparison of versions with and without reduction.png}
+We have also tested if using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between using and not using reduction is shown in figure \ref{fig: reduction heat} and \ref{fig: reduction n}. It is clear that using no reduction is way more efficient.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of openMP with and without reduction for different values of HEAT.png}
+    \caption{openMP program with/without reduction.}
+    \label{fig: reduction heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of openMP with and without reduction for different values of N.png}
+    \caption{openMP program with/without reduction.}
+    \label{fig: reduction n}
+\end{figure}
 
 As stated before, we have made multiple optimized sequential versions. We have applied the openMP's support for loops on all of these versions to see which performes best when openMP is used. The following figure shows the results.
 
-% Add a figure for N and heat comparing the major versions.
-\includegraphics[scale = 0.5]{../graphs/Comparison of openMP versions.png}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of openMP versions for different values of HEAT.png}
+    \caption{openMP versions vs HEAT}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of openMP versions for different values of N.png}
+    \caption{openMP versions vs N}
+    \label{fig: orig heat}
+\end{figure}
 
 Surprisingly, even though the \textit{split} version performed faster in the sequential setting, the \textit{joined} version performs faster in openMP.
 
 \section{MPI}
 For MPI we compared the performance of versions in which we use \texttt{MPI\_Allgather}
-and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible.
+and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible. The following eight figures compare the versions for different values of HEAT, N and the number of ranks
 
-% TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis. (And also compare different numbers of ranks?)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of MPI versions with 1 rank for different values of HEAT.png}
+    \caption{MPI versions vs HEAT on 1 rank}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of MPI versions with 2 ranks for different values of HEAT.png}
+    \caption{MPI versions vs HEAT on 2 ranks}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of MPI versions with 3 ranks for different values of HEAT.png}
+    \caption{MPI versions vs HEAT on 3 ranks}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/heat/Comparison of MPI versions with 4 ranks for different values of HEAT.png}
+    \caption{MPI versions vs HEAT on 4 ranks}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of MPI versions with 1 rank for different values of N.png}
+    \caption{MPI versions vs HEAT on 1 rank}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of MPI versions with 2 ranks for different values of N.png}
+    \caption{MPI versions vs HEAT on 2 ranks}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of MPI versions with 3 ranks for different values of N.png}
+    \caption{MPI versions vs HEAT on 3 ranks}
+    \label{fig: orig heat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{graphs/n/Comparison of MPI versions with 4 ranks for different values of N.png}
+    \caption{MPI versions vs HEAT on 4 ranks}
+    \label{fig: orig heat}
+\end{figure}
 
 \section{Performance}
 We made a general observation regarding the size of the vector. Whenever we increase the vector size all of the non-zero versions become considerably slower, while the zero versions keep the same runtime, since they ignore a huge part of the vector, namely everything after the first zero. This optimization has a smaller impact when the heat value is increased or the epsilon value is decreased. Because in this case the zero versions have a big advantage at the start, when the heat is not diffused so far yet. However, the further the heat diffuses the smaller the advantage of the zero versions becomes. Thus, if the vector is relatively small the advantage of the zero versions is negligable.
@@ -110,7 +222,9 @@ The sequential algorithms are faster when split is used than when join is used. 
 
 The openMP algorithms are faster when join is used than when split is used. Because join can easily be run in parallel, since all the results are gathered into one \texttt{stable} variable which is returned at the end. But when using split checking if the array is stable cannot be run in parallel, since the for loop stops/returns whenever an unstable cell in the array is found. This means that the split version slows the openMP algorithms down a lot due to the sequential nature of the \texttt{isStable} function. So for openMP the join versions are way faster than the split versions.
 
-% TODO MPI conclusions
+For MPI, we conclude that on a small number of 4 cores, there is little to no performance gain. Likely because the overhead of sending messages and sharing results between all ranks nullifies the performance gain from spreading the work across the cores. We do however have strong scalability for these algorithms, since the array of $10^n$ indexes can easily be divided across however many ranks there are. So we would expect that MPI runs fastest on such large systems.
+
+Comparing all versions, we conclude that openMP, the \textit{join\_zero} version, performs best on the one-system setups we tested it on. This is to be expected, since openMP was really designed for this kind of environment, whereas MPI was designed for multi-system setups.
 
 \section{Task division}
 Here we give an overview of the task division between the members of our group.
