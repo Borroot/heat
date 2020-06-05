@@ -100,7 +100,7 @@ Surprisingly, even though the \textit{split} version performed faster in the seq
 \section{MPI}
 For MPI we compared the performance of versions in which we use \texttt{MPI\_Allgather}
 and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, 
-is that the straightforward way to do manual messages causes one thread to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the threads as much as possible. 
+is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible. 
 
 % TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis. (And also compare different numbers of ranks?)
 
@@ -116,7 +116,7 @@ The openMP algorithms are faster when join is used than when split is used. Beca
 \section{Task division}
 Here we give an overview of the task division between the members of our group.
 \begin{itemize}
-    \item \textbf{Steven Bronsveld and Wouter Damen} worked on the MPI code.
+    \item \textbf{Steven Bronsveld and Wouter Damen} worked on the MPI code. They first planned out what optimizations where possible, and what different MPI-techniques where. Then they devided the work such that Wouter made the programm using the different forms of gather, and Steven used MPI-messages.
     \item \textbf{Kirsten Hagenaars and Bram Pulles} worked on the openMP code. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots in this report using Python.
     \item \textbf{All}: We frequently met each other online to discuss our findings and the progress we made on the project. Each one of us wrote the section in the report corresponding to the code on which he/she has worked. We all worked on improving the sequential version before we splitted into two groups and dived into openMP and MPI seperately. The decision to split into pairs was made to reduce the overhead of communication when working on the individual sections. We also shared ideas for optimizations and gave each other mental support.
 \end{itemize}
