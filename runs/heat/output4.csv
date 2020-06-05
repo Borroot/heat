@@ -1,7 +1,5 @@
-openmp/schedule/relax_dynamic openmp/schedule/relax_auto openmp/schedule/relax_static openmp/schedule/relax_guided
 openmp/schedule
 heat,dynamic,auto,static,guided
-dynamic auto static guided
 10,7.365140,0.000397,0.000405,0.000412
 10,7.245540,0.000404,0.000408,0.000432
 10,7.220740,0.006186,0.000386,0.000364
