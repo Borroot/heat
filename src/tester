@@ -260,8 +260,6 @@ tests()
 	do
 		progs=$(find "$folder" -type f -name '*.c' | sed 's/\.c//g')
 		names=$(echo "$progs" | sed -E 's;.*/;;g' | sed -E 's/relax_//g')
-		echo $progs
-		echo $names
 
 		if [[ $1 == mpi ]]
 		then
