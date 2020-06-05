@@ -81,26 +81,25 @@ Since we came up with multiple possible improvements to the program, we decided 
 For the openMP versions of the program, we have used \texttt{\#pragma omp parallel for schedule(...)} for the loops in the functions \texttt{init} and \texttt{relaxAndStable}. To find out which scheduling strategy performes the best, we have made a comparison between the scheduling strategies. The results are shown in the following figure, note that the dynamic scheduling strategy is not included since it often took more than $10$ seconds, making it way slower than the others.
 
 % Add a figure for N and heat on the scheduling strategies.
-% \includegraphics[scale = 0.5]{graphs/Comparison of openMP scheduling strategies.png}
+\includegraphics[scale = 0.5]{../graphs/Comparison of openMP scheduling strategies.png}
 
 This may not be clearly visible from the figure, but we found that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
 
 We have also tried out if using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between stopping early and using reduction is depicted in the figure below.
 
 % Add a figure for N and heat on reduction yes/no.
-% \includegraphics[scale = 0.5]{graphs/Comparison of versions with and without reduction.png}
+\includegraphics[scale = 0.5]{../graphs/Comparison of versions with and without reduction.png}
 
 As stated before, we have made multiple optimized sequential versions. We have applied the openMP's support for loops on all of these versions to see which performes best when openMP is used. The following figure shows the results.
 
 % Add a figure for N and heat comparing the major versions.
-% \includegraphics[scale = 0.5]{graphs/Comparison of openMP versions.png}
+\includegraphics[scale = 0.5]{../graphs/Comparison of openMP versions.png}
 
 Surprisingly, even though the \textit{split} version performed faster in the sequential setting, the \textit{joined} version performs faster in openMP.
 
 \section{MPI}
 For MPI we compared the performance of versions in which we use \texttt{MPI\_Allgather}
-and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures,
-is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible.
+and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible.
 
 % TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis. (And also compare different numbers of ranks?)
 
