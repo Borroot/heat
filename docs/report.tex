@@ -53,11 +53,11 @@ In order to gather performance information we use a tester made by one of the te
 Lastly, we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
 
 % TODO Explain what split join and zero means
-    
+
 \section{Sequential}
 \textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$. Furthermore, every version was executed $20$ times and each individual run is shown by a dot in the figure.}\\
 
-\noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we also added the freeing of the allocated memory at the end of the program. 
+\noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we also added the freeing of the allocated memory at the end of the program.
 
 We have also implemented the option of passing the values for N, EPS and HEAT as command-line arguments to the program, which allows us to test more easily and automatically. Parsing of the arguments is not included in the runtimes.
 
@@ -99,8 +99,8 @@ Surprisingly, even though the \textit{split} version performed faster in the seq
 
 \section{MPI}
 For MPI we compared the performance of versions in which we use \texttt{MPI\_Allgather}
-and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, 
-is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible. 
+and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures,
+is that the straightforward way to do manual messages causes one process to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the processes as much as possible.
 
 % TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis. (And also compare different numbers of ranks?)
 
