@@ -47,19 +47,19 @@ Table \ref{tab: hardware} shows the hardware specifications of the CPU from the 
     \label{tab: hardware}
 \end{table}
 
-\section{Tester}
+\section{Testing}
 In order to gather performance information we use a tester made by one of the team members. The tester is written in Bash and supports a wide variety of options, including: minimum and maximum N and rank over which will be iterated, the epsilon value, the initial heat value, a timeout, the number of iterations to run, and the suite which we want to test (MPI, openMP, sequential or any combination of these). It further has a verbosity which can be set so we can produce human readable output or output in the CSV format so it is easy to process the test data and make graphs from them.
 
-At last we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
+Lastly, we used a seperate Bash script to call the tester on a wide variety of configurations which automatically runs all of them, post processes the CSV output further and puts the results in seperate files, this way we could run tests for hours without having to do anything manually.
 
 % TODO Explain what split join and zero means
     
 \section{Sequential}
-\textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$, furthermore every version was executed $20$ times and each individual run is shown by a dot in the figure.}\\
+\textit{Unless stated otherwise, runtimes shown in figures have been acquired using $\texttt{N} = 1000000$, $\texttt{eps} = 0.01$ and $\texttt{HEAT} = 100$. Furthermore, every version was executed $20$ times and each individual run is shown by a dot in the figure.}\\
 
-\noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we added the freeing of the allocated memory at the end of the program. 
+\noindent We have added a check for malloc failure to the program. After running valgrind on the program, which alerted us to the memory leak that was left by the heap-allocated vectors, we also added the freeing of the allocated memory at the end of the program. 
 
-We have also implemented the option of passing the values for N, EPS and HEAT as command-line arguments to the program, which allows us to test more easily and automatically.
+We have also implemented the option of passing the values for N, EPS and HEAT as command-line arguments to the program, which allows us to test more easily and automatically. Parsing of the arguments is not included in the runtimes.
 
 Since we came up with multiple possible improvements to the program, we decided to make multiple versions and compare these. Here is a list of these versions and how they differ from the original program (aside from what is mentioned above). Note that the openMP and the MPI versions use the same naming conventions.
 \begin{itemize}
@@ -85,7 +85,7 @@ For the openMP versions of the program, we have used \texttt{\#pragma omp parall
 
 This may not be clearly visible from the figure, but we found that the static scheduling strategy leads to the smallest runtimes on average. Therefore we have used this stategy for the final openMP versions.
 
-We have tried out whether using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between stopping early and using reduction is depicted in the figure below.
+We have also tried out if using openMP's reduction decreases runtimes. We found that this is not a good approach, because we want to stop searching once we find one instance of \texttt{fabs(out[i] - in[i]) <= eps} being false, which does not happen when using \texttt{ reduction(\&\&: stable)}. Using openMP's support for for-loops in the \texttt{init} and \texttt{relaxAndStable} functions does achieve this. The difference between stopping early and using reduction is depicted in the figure below.
 
 % Add a figure for N and heat on reduction yes/no.
 % \includegraphics[scale = 0.5]{graphs/Comparison of versions with and without reduction.png}
@@ -95,13 +95,14 @@ As stated before, we have made multiple optimized sequential versions. We have a
 % Add a figure for N and heat comparing the major versions.
 % \includegraphics[scale = 0.5]{graphs/Comparison of openMP versions.png}
 
-Surprisingly, eventhough the \textit{split} version performed faster in the sequential setting, the \textit{joined} version performs faster in openMP.
+Surprisingly, even though the \textit{split} version performed faster in the sequential setting, the \textit{joined} version performs faster in openMP.
 
 \section{MPI}
-For MPI we compared the performance of versions in which  we use \texttt{MPI\_Allgather}
-and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that seperately using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages.
+For MPI we compared the performance of versions in which we use \texttt{MPI\_Allgather}
+and \texttt{MPI\_Allreduce} and of versions in which we manually communicate the results using \texttt{MPI\_Send} and \texttt{MPI\_Recv}. It was very apparent that using \texttt{MPI\_Allgather} for the heat array and \texttt{MPI\_Allreduce} for the stability boolean is much faster than manual messages. The reason for this, as discussed in the lectures, 
+is that the straightforward way to do manual messages causes one thread to do all of the reduction work. Whereas the MPI reduction methods will automatically optimize the message structure to divide the reduction work across the threads as much as possible. 
 
-% TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis.
+% TODO Finish this section and add two addition figures one with N on the x axis and one with heat on the x axis. (And also compare different numbers of ranks?)
 
 \section{Performance}
 We made a general observation regarding the size of the vector. Whenever we increase the vector size all of the non-zero versions become considerably slower, while the zero versions keep the same runtime, since they ignore a huge part of the vector, namely everything after the first zero. This optimization has a smaller impact when the heat value is increased or the epsilon value is decreased. Because in this case the zero versions have a big advantage at the start, when the heat is not diffused so far yet. However, the further the heat diffuses the smaller the advantage of the zero versions becomes. Thus, if the vector is relatively small the advantage of the zero versions is negligable.
@@ -113,10 +114,10 @@ The openMP algorithms are faster when join is used than when split is used. Beca
 % TODO MPI conclusions
 
 \section{Task division}
-Here we give a overview of the task division between the members of our group.
+Here we give an overview of the task division between the members of our group.
 \begin{itemize}
-    \item \textbf{Steven Bronsveld and Wouter Damen}: They worked on MPI.
-    \item \textbf{Kirsten Hagenaars and Bram Pulles}: They worked on openMP. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots in this report using Python.
+    \item \textbf{Steven Bronsveld and Wouter Damen} worked on the MPI code.
+    \item \textbf{Kirsten Hagenaars and Bram Pulles} worked on the openMP code. Bram further made the testing setup, the Bash scripts, and the Makefiles to compile all of the code. Kirsten additionally made all of the plots in this report using Python.
     \item \textbf{All}: We frequently met each other online to discuss our findings and the progress we made on the project. Each one of us wrote the section in the report corresponding to the code on which he/she has worked. We all worked on improving the sequential version before we splitted into two groups and dived into openMP and MPI seperately. The decision to split into pairs was made to reduce the overhead of communication when working on the individual sections. We also shared ideas for optimizations and gave each other mental support.
 \end{itemize}
 
