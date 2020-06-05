@@ -11,8 +11,8 @@ readonly runs=(
 	#"-S -f major"
 	#"-S -f original"
 	#"-O -f major"
-	"-O -f reduction" # fix
-	"-O -f schedule"  # fix
+	"-O -f reduction"
+	"-O -f schedule"
 	#"-M -f major -r 1 -R 1"
 	#"-M -f major -r 2 -R 2"
 	#"-M -f major -r 3 -R 3"
@@ -24,6 +24,7 @@ make
 for run in ${!runs[*]}
 do
 	count=$(command ls "$OUTPUT_FOLDER" | wc -l)
+	(( count = count - 4 ))
 	output_file=${OUTPUT_FOLDER}/output$count.csv
 
 	for (( j = 10; j <= 10000000; j = j * 10 ))
